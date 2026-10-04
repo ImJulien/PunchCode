@@ -13,9 +13,10 @@ interface SidebarProps {
   interactionDisabled: boolean;
   openLevelsRequest: number;
   onOpenCheatSheet: () => void;
+  onCloseCheatSheet: () => void;
 }
 
-export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutorial, onSelectLevel, ambienceVolume, onAmbienceVolumeChange, interactionDisabled, openLevelsRequest, onOpenCheatSheet }: SidebarProps) {
+export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutorial, onSelectLevel, ambienceVolume, onAmbienceVolumeChange, interactionDisabled, openLevelsRequest, onOpenCheatSheet, onCloseCheatSheet }: SidebarProps) {
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("TUTORIAL");
@@ -74,6 +75,7 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
           <div className="group relative flex items-center justify-center w-full">
             <button
               type="button"
+              disabled={interactionDisabled}
               onClick={onOpenCheatSheet}
               aria-label="Open FORTRAN cheat sheet"
               className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#b8e7ff] hover:text-[#e1f5ff] hover:border-[#7fc8ff]/60 transition-colors"
@@ -91,7 +93,10 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
           <div className="group relative flex items-center justify-center w-full">
             <button
               disabled={interactionDisabled}
-              onClick={() => setLevelsOpen((open) => !open)}
+              onClick={() => {
+                onCloseCheatSheet();
+                setLevelsOpen((open) => !open);
+              }}
               aria-label="Open levels menu"
               className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#f5d996] hover:text-[#ffe7b1] hover:border-[#f5d996]/60 transition-colors"
             >

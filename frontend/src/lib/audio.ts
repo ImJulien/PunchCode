@@ -16,7 +16,7 @@ const SOUND_FILES = [
   "hover.wav",
   "button.wav",
   "error.wav",
-  "compile.mp3",
+  "complete.mp3",
   "music.mp3",
 ];
 
@@ -123,7 +123,7 @@ export function playButtonSound() {
 }
 
 export function playCompileSound() {
-  playFile("compile.mp3", 0.7);
+  playFile("complete.mp3", 0.7);
 }
 
 export function playErrorSound() {

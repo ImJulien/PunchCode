@@ -157,18 +157,6 @@ export default function FlippyTutorial({
     return () => window.removeEventListener("keydown", handleSuccessKey);
   }, [onLevelComplete, successVisible]);
 
-  useEffect(() => {
-    if (!activeLevel || displayMode !== "cards") return;
-    const blockOutsideCurrentCard = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (target.closest(".flippy-guide") || target.closest("#punch-bed")) return;
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    document.addEventListener("pointerdown", blockOutsideCurrentCard, true);
-    return () => document.removeEventListener("pointerdown", blockOutsideCurrentCard, true);
-  }, [activeLevel, displayMode]);
   const current = useMemo<TutorialStep>(() => {
     if (displayMode === "tour") return TOUR_STEPS[tourStep];
     if (displayMode === "cards") {
@@ -218,6 +206,28 @@ export default function FlippyTutorial({
       target: "#line-printer",
     };
   }, [activeLevel, cardInstructions, cardStep, challengePrompt, challengeTitle, displayMode, tourStep]);
+
+  useEffect(() => {
+    const blockOutsideTutorialTarget = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest(".flippy-guide")) return;
+      const currentTarget = document.querySelector(current.target);
+      const targetIsActionable =
+        current.target === "#punch-bed" ||
+        current.target === "#card-stacker" ||
+        current.target === "#compile-button";
+      if (targetIsActionable && currentTarget?.contains(target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    document.addEventListener("pointerdown", blockOutsideTutorialTarget, true);
+    document.addEventListener("click", blockOutsideTutorialTarget, true);
+    return () => {
+      document.removeEventListener("pointerdown", blockOutsideTutorialTarget, true);
+      document.removeEventListener("click", blockOutsideTutorialTarget, true);
+    };
+  }, [current.target]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setFrame((value) => (value + 1) % 2), 450);

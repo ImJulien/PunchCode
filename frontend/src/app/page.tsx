@@ -702,7 +702,8 @@ export default function Home() {
         }}
         interactionDisabled={tutorialVisible}
         openLevelsRequest={openLevelsRequest}
-        onOpenCheatSheet={() => setCheatSheetOpen(true)}
+        onOpenCheatSheet={() => setCheatSheetOpen((open) => !open)}
+        onCloseCheatSheet={() => setCheatSheetOpen(false)}
         onSelectTutorial={() => {
           setActiveLevel(null);
           setObjectiveHidden(false);
@@ -1060,11 +1061,10 @@ export default function Home() {
           <div className="bg-[#1f252b] px-4 py-2 border-b border-[#2b333c] flex flex-wrap gap-2 justify-between items-center text-[10px] font-mono text-[#748494] tracking-wider uppercase">
             <span className="font-bold text-[#b5c1cc]">IBM 1403 LINE PRINTER</span>
             <div className="flex items-center gap-3">
-              <span className="hidden sm:inline">132 COLUMNS • 1100 LINES/MIN</span>
               <button
                 type="button"
                 onClick={() => setCompilerFullscreen((fullscreen) => !fullscreen)}
-                className="border border-[#718290] px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#b5c1cc] hover:border-[#d1d5d8] hover:text-white"
+                className="header-action-button border border-[#718290] px-3 text-[10px] font-bold tracking-widest text-[#b5c1cc] hover:border-[#d1d5d8] hover:text-white"
               >
                 {compilerFullscreen ? "MINIMIZE" : "FULLSCREEN"}
               </button>
@@ -1072,8 +1072,8 @@ export default function Home() {
                 id="compile-button"
                 onClick={handleExecuteDeck}
                 disabled={isRunning}
-                className={`px-4 py-1.5 rounded-sm text-[10px] font-mono font-bold tracking-widest transition-all shadow-[0_2px_6px_rgba(0,0,0,0.6)] border ${
-                  isRunning ? "bg-[#61451f] border-[#8a6531] text-[#c9a777] cursor-wait" : "bg-[#25b866] hover:bg-[#35d77b] active:translate-y-[1px] active:shadow-none border-[#69e99a] text-[#f0fff5]"
+                className={`header-action-button compile-button px-5 rounded-sm text-[11px] font-mono font-bold tracking-widest transition-all border ${
+                  isRunning ? "compile-button-running cursor-wait" : ""
                 }`}
               >
                 {isRunning ? "READING..." : "COMPILE"}

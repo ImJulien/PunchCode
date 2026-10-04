@@ -6,7 +6,7 @@ paper-enter.wav   Paper movement when a card is released or an inspected card is
 paper-deck.wav    Paper movement when the entire deck is scrapped.
 hover.wav         Short sound when the pointer enters a button.
 button.wav        Short sound when a button is pressed.
-compile.mp3       Compile button sound.
+complete.mp3      Compile button sound.
 music.mp3         Optional looping background music.
 
 The existing machine effects use these additional optional filenames:
