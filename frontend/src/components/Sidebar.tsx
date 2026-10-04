@@ -145,7 +145,6 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
 
         </div>
       </div>
-
       <div className="flex flex-col items-center gap-3">
         <div className="w-3 h-3 rounded-full bg-[#101316] border border-[#37414b] shadow-inner flex items-center justify-center">
           <div className="w-2 h-[1px] bg-stone-500 rotate-45" />

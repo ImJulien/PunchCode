@@ -497,18 +497,18 @@ export default function Home() {
 
       {activeLevel && (
         <aside
-          className="fixed z-[60] h-[120px] min-h-[96px] min-w-[240px] w-[min(360px,calc(100vw-6rem))] resize overflow-hidden border border-[#8d7546] bg-[#1b2126]/95 font-mono shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm"
+          className="fixed z-[60] flex h-[min(120px,calc(100dvh-2rem))] min-h-[96px] min-w-[240px] w-[min(360px,calc(100vw-6rem))] resize flex-col overflow-hidden border border-[#8d7546] bg-[#1b2126]/95 font-mono shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm"
           style={objectivePosition ? { left: objectivePosition.left, top: objectivePosition.top } : { right: "1rem", bottom: "1rem" }}
           aria-label="Level objective"
         >
           <div
-            className="cursor-move select-none border-b border-[#594d37] bg-[#242b31] px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[#e4c46d]"
+            className="shrink-0 cursor-move select-none overflow-hidden text-ellipsis whitespace-nowrap border-b border-[#594d37] bg-[#242b31] px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[#e4c46d]"
             onPointerDown={startObjectiveDrag}
             title="Drag to move"
           >
             LEVEL {activeLevel}: {getLevel(activeLevel).title}
           </div>
-          <div className="p-3 text-[11px] leading-relaxed text-[#d1d8dc]">
+          <div className="min-h-0 overflow-y-auto p-3 text-[11px] leading-relaxed text-[#d1d8dc] break-words">
             {getLevel(activeLevel).prompt}
           </div>
         </aside>
@@ -759,7 +759,7 @@ export default function Home() {
           <div className="h-[calc(100%-42px)] flex bg-[#f0f5f0] text-[#1c2b1e]">
             <div className="w-7 border-r border-[#d4ded4] flex-shrink-0" style={{ backgroundImage: "radial-gradient(circle, #252c33 3.5px, transparent 4px)", backgroundSize: "28px 20px", backgroundPosition: "center 8px" }} />
 
-            <div id="output-code" className="flex-1 p-5 font-mono text-xs overflow-auto">
+            <div id="output-code" className="no-scrollbar min-w-0 flex-1 overflow-auto p-5 font-mono text-xs">
               {printerOutput.map((line, idx) => {
                 const isGreenBand = Math.floor(idx / 3) % 2 === 1;
                 return (

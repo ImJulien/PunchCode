@@ -207,7 +207,7 @@ export default function FlippyTutorial({
   const guideStyle = spotlight
     ? (() => {
         const width = Math.min(430, window.innerWidth - 32);
-        const height = 280;
+        const height = Math.min(280, window.innerHeight - 32);
         const gap = 18;
         const clampX = (value: number) => Math.min(Math.max(16, value), window.innerWidth - width - 16);
         const clampY = (value: number) => Math.min(Math.max(16, value), window.innerHeight - height - 16);
@@ -269,7 +269,7 @@ export default function FlippyTutorial({
         />
       )}
       <div
-        className="flippy-guide pointer-events-auto fixed w-[min(430px,calc(100vw-2rem))] border-2 border-[#b99558] bg-[#15191d]/95 p-4 text-[#d9e0e4] shadow-[0_12px_30px_rgba(0,0,0,0.75)] backdrop-blur-sm"
+        className="flippy-guide no-scrollbar pointer-events-auto fixed max-h-[calc(100dvh-2rem)] w-[min(430px,calc(100vw-2rem))] overflow-y-auto border-2 border-[#b99558] bg-[#15191d]/95 p-4 text-[#d9e0e4] shadow-[0_12px_30px_rgba(0,0,0,0.75)] backdrop-blur-sm"
         style={guideStyle}
       >
         <div className="flex items-center gap-3">
@@ -277,13 +277,13 @@ export default function FlippyTutorial({
             <Image src={`/flippy/flippy-${frame + 1}.png`} alt="" width={180} height={180} unoptimized />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flippy-chatbox relative border border-[#46535e] bg-[#20282f] p-3 font-mono">
+            <div className="flippy-chatbox relative min-w-0 border border-[#46535e] bg-[#20282f] p-3 font-mono break-words">
               <div className="mb-1 flex items-center justify-between gap-2">
-                <h2 className="text-sm font-black tracking-wide text-[#f0d69c]">{current.title}</h2>
+                <h2 className="min-w-0 break-words text-sm font-black tracking-wide text-[#f0d69c]">{current.title}</h2>
                 <span className="font-mono text-[9px] text-[#73818b]">{progress}</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-[#c8d0d5]">{current.message}</p>
-              <p className="mt-2 text-[10px] italic text-[#8f9da6]">{current.hint}</p>
+              <p className="break-words text-[11px] leading-relaxed text-[#c8d0d5]">{current.message}</p>
+              <p className="mt-2 break-words text-[10px] italic text-[#8f9da6]">{current.hint}</p>
             </div>
           </div>
         </div>
