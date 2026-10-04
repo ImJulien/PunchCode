@@ -59,6 +59,7 @@ export default function Home() {
   const [tutorialVisible, setTutorialVisible] = useState(true);
   const [helloWorldComplete, setHelloWorldComplete] = useState(false);
   const [openLevelsRequest, setOpenLevelsRequest] = useState(0);
+  const [guideSession, setGuideSession] = useState(0);
   const [activeLevel, setActiveLevel] = useState<LevelId | null>(null);
   const [ambienceVolume, setAmbienceVolumeState] = useState(0.2);
   const [objectivePosition, setObjectivePosition] = useState<{ left: number; top: number } | null>(null);
@@ -72,6 +73,22 @@ export default function Home() {
   const progControlRef = useRef(progControl);
   const stackerLengthRef = useRef(stacker.length);
   const hopperCountRef = useRef(hopperCount);
+
+  const resetDeck = useCallback(() => {
+    setStacker([]);
+    setReadCard(null);
+    setInspectingIdx(null);
+    setCurrentCols(Array(80).fill(" "));
+    setColIdx(0);
+    setLastReleaseCorrect(null);
+    setReleaseRevision(0);
+    setScrapRevision(0);
+    setHasCompiled(false);
+    setPrinterOutput([
+      "IBM SYSTEM/360 OPERATING SYSTEM - READY FOR BATCH JOB",
+      "LOAD CARD DECK INTO HOPPER AND PRESS [FEED DECK TO RUNNER]",
+    ]);
+  }, []);
 
   useEffect(() => {
     preloadAudio();
@@ -205,11 +222,12 @@ export default function Home() {
       return; // Cannot feed if hopper is empty
     }
 
+    const challengeCards = activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK;
+    const hasPunchedContent = currentColsRef.current.slice(0, 72).join("").trim().length > 0;
     if (
-      activeLevel &&
-      (tutorialCardIndex >= getLevel(activeLevel).cards.length ||
-        lastReleaseCorrect === false ||
-        currentColsRef.current.slice(0, 72).join("").trim().length === 0)
+      tutorialCardIndex >= challengeCards.length ||
+      lastReleaseCorrect === false ||
+      !hasPunchedContent
     ) {
       playLockSound();
       return;
@@ -223,7 +241,6 @@ export default function Home() {
     setHopperCount((prev) => Math.max(0, prev - 1));
 
     const finalCard = [...currentColsRef.current];
-    const challengeCards = activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK;
     const expectedCard = challengeCards[tutorialCardIndex];
     const releaseIsCorrect = expectedCard
       ? finalCard.slice(0, 72).join("").trimEnd() === expectedCard
@@ -453,7 +470,7 @@ export default function Home() {
     <div className="h-dvh overflow-hidden bg-[#141618] text-[#c5cfd6] flex">
       {tutorialVisible && (
         <FlippyTutorial
-          key={activeLevel ?? "tutorial"}
+          key={`${activeLevel ?? "tutorial"}-${guideSession}`}
           completed={helloWorldComplete}
           tutorialCardIndex={tutorialCardIndex}
           lastReleaseCorrect={lastReleaseCorrect}
@@ -496,26 +513,17 @@ export default function Home() {
           setActiveLevel(null);
           setTutorialCardIndex(0);
           setHelloWorldComplete(false);
+          resetDeck();
+          setGuideSession((session) => session + 1);
           setTutorialVisible(true);
         }}
         onSelectLevel={(level) => {
           setActiveLevel(level);
           setTutorialCardIndex(0);
           setHelloWorldComplete(false);
-          setLastReleaseCorrect(null);
-          setReleaseRevision(0);
-          setScrapRevision(0);
+          resetDeck();
+          setGuideSession((session) => session + 1);
           setTutorialVisible(true);
-          setStacker([]);
-          setReadCard(null);
-          setInspectingIdx(null);
-          setCurrentCols(Array(80).fill(" "));
-          setColIdx(0);
-          setPrinterOutput([
-            "IBM SYSTEM/360 OPERATING SYSTEM - READY FOR BATCH JOB",
-            "LOAD CARD DECK INTO HOPPER AND PRESS [FEED DECK TO RUNNER]"
-          ]);
-          setHasCompiled(false);
         }}
       />
 

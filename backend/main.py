@@ -70,7 +70,7 @@ def run_fortran_deck(req: ExecuteRequest):
 
     job_id = str(uuid.uuid4())
     temp_dir = tempfile.gettempdir()
-    src_file = os.path.join(temp_dir, f"{job_id}.f90")
+    src_file = os.path.join(temp_dir, f"{job_id}.f")
     bin_file = os.path.join(temp_dir, f"{job_id}.exe" if os.name == "nt" else job_id)
 
     with open(src_file, "w") as f:
