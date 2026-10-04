@@ -79,7 +79,7 @@ def run_fortran_deck(req: ExecuteRequest):
     try:
         # 2. Compile safely (no kernel limits applied to gfortran compiler driver)
         compile_res = subprocess.run(
-            ["gfortran", "-O2", src_file, "-o", bin_file],
+            ["gfortran", "-O2", "-ffixed-form", src_file, "-o", bin_file],
             capture_output=True,
             text=True,
             timeout=8

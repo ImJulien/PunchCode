@@ -15,6 +15,7 @@ interface ProgramUnitProps {
 }
 
 export default function ProgramUnit({ colIdx, progControl, escapementKick }: ProgramUnitProps) {
+  const displayColIdx = Math.min(colIdx, 79);
   const getFieldInfo = () => {
     if (colIdx < 5) return { name: "STMT LABEL", code: "COLS 1-5" };
     if (colIdx === 5) return { name: "CONTINUATION", code: "COL 6" };
@@ -85,10 +86,10 @@ export default function ProgramUnit({ colIdx, progControl, escapementKick }: Pro
 
           <div
             className="flex items-center absolute left-1/2 transition-transform duration-75 ease-out select-none will-change-transform"
-            style={{ transform: `translateX(-${(80 + colIdx) * 28 + 14}px)` }}
+            style={{ transform: `translateX(-${(80 + displayColIdx) * 28 + 14}px)` }}
           >
             {DIAL_NUMBERS.map((num, i) => {
-              const isCurrent = i === 80 + colIdx;
+              const isCurrent = i === 80 + displayColIdx;
               return (
                 <div key={i} className="w-[28px] h-8 flex flex-col items-center justify-center shrink-0 border-r border-[#1c2227]">
                   <span className={`font-mono text-[12px] leading-none ${isCurrent ? "font-black text-[#faf8f5] drop-shadow-[0_0_2px_rgba(255,255,255,0.7)]" : "font-semibold text-[#5a6773]"}`}>

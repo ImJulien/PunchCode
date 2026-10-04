@@ -11,6 +11,7 @@ const SOUND_FILES = [
   "printer.wav",
   "lock.wav",
   "paper-enter.wav",
+  "paper-scrap.wav",
   "paper-deck.wav",
   "hover.wav",
   "button.wav",
@@ -98,6 +99,10 @@ export function playLockSound() {
 
 export function playPaperEnterSound() {
   playFile("paper-enter.wav", 0.65);
+}
+
+export function playPaperScrapSound() {
+  playFile("paper-scrap.wav", 0.65);
 }
 
 export function playPaperDeckSound() {

@@ -7,6 +7,7 @@ export interface LevelDefinition {
   isImpossible?: boolean;
   title: string;
   prompt: string;
+  hint: string;
   cards: string[];
   acceptedOutput: RegExp;
 }
@@ -21,6 +22,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "EASY",
     title: "Square of an Integer",
     prompt: "Set N to 4, calculate its square, and print the result.",
+    hint: "Use one integer variable for 4, another for its product, and an integer FORMAT statement for the printed result.",
     cards: [
       card("N = 4"),
       card("ISQ = N * N"),
@@ -36,6 +38,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "EASY",
     title: "Simple Sum",
     prompt: "Set A to 5 and B to 3, add them together, and print the result.",
+    hint: "Store 5 and 3 in separate variables, add them into a third variable, then print that value.",
     cards: [
       card("A = 5"),
       card("B = 3"),
@@ -52,6 +55,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "EASY",
     title: "Counting to Five",
     prompt: "Print the numbers 1 through 5 using a DO loop.",
+    hint: "Use a DO loop variable that starts at 1 and ends at 5, with a WRITE statement inside the loop.",
     cards: [
       card("DO 10 I = 1, 5"),
       card("WRITE(6, 20) I"),
@@ -67,6 +71,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "EASY",
     title: "Multiplication Table",
     prompt: "Print the first five multiples of 5 using a DO loop.",
+    hint: "Loop from 1 through 5, multiply the loop variable by 5, and print the product each iteration.",
     cards: [
       card("DO 10 I = 1, 5"),
       card("M = I * 5"),
@@ -83,6 +88,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "EASY",
     title: "Countdown",
     prompt: "Print a countdown from 3 to 1 using a loop and a conditional branch.",
+    hint: "Start at 3, print the current value, subtract 1, and branch back while the value remains positive.",
     cards: [
       card("N = 3"),
       labeledCard(10, "WRITE(6, 20) N"),
@@ -99,6 +105,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "MEDIUM",
     title: "Arithmetic Branching",
     prompt: "Use an arithmetic IF to print EQUAL when N is 4.",
+    hint: "Set N to 4 and branch based on N minus 4; the equal branch should print EQUAL.",
     cards: [
       card("N = 4"),
       card("IF (N - 4) 30, 20, 30"),
@@ -117,6 +124,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "MEDIUM",
     title: "Powers of Two",
     prompt: "Print the first four powers of two using a DO loop.",
+    hint: "Loop I from 1 through 4, calculate 2 to the power of I, and print each result.",
     cards: [
       card("DO 10 I = 1, 4"),
       card("K = 2 ** I"),
@@ -133,6 +141,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "MEDIUM",
     title: "Array Accumulator",
     prompt: "Store three numbers in an array, add them, and print the total.",
+    hint: "Declare an array with three elements, assign the values, add all three into a total, and print it.",
     cards: [
       card("DIMENSION NUMS(3)"),
       card("NUMS(1) = 10"),
@@ -151,6 +160,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "HARD",
     title: "Fibonacci Sequence",
     prompt: "Print the first six numbers in the Fibonacci sequence.",
+    hint: "Begin with two 1 values, print them, then repeatedly add the previous two values and shift forward.",
     cards: [
       card("IA = 1"),
       card("IB = 1"),
@@ -173,6 +183,7 @@ export const LEVELS: LevelDefinition[] = [
     difficulty: "HARD",
     title: "Factorial Calculator",
     prompt: "Calculate and print the factorial of 5.",
+    hint: "Initialize a product at 1, loop from 1 through 5 multiplying into it, then print the product.",
     cards: [
       card("N = 5"),
       card("IFACT = 1"),
@@ -191,6 +202,7 @@ export const LEVELS: LevelDefinition[] = [
     isImpossible: true,
     title: "Conway's Game of Life",
     prompt: "Punch the complete 100-card Conway's Game of Life deck: a 6x6 blinker simulated over three generations with IBM JCL wrappers.",
+    hint: "This is a larger simulation: initialize a 6x6 grid, place a vertical blinker, count neighbors for each generation, and print every generation.",
     cards: [
       "//SFULIFE  JOB (CMPT101,100),'CONWAY',CLASS=A,MSGLEVEL=(1,1)",
       "//EXEC     FORTRANG,PARM.FORT='NODECK,LOAD'",

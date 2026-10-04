@@ -12,9 +12,10 @@ interface SidebarProps {
   onAmbienceVolumeChange: (volume: number) => void;
   interactionDisabled: boolean;
   openLevelsRequest: number;
+  onOpenCheatSheet: () => void;
 }
 
-export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutorial, onSelectLevel, ambienceVolume, onAmbienceVolumeChange, interactionDisabled, openLevelsRequest }: SidebarProps) {
+export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutorial, onSelectLevel, ambienceVolume, onAmbienceVolumeChange, interactionDisabled, openLevelsRequest, onOpenCheatSheet }: SidebarProps) {
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("TUTORIAL");
@@ -46,7 +47,38 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
               <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z" /><path d="M15 3v5h5M8 13h8M8 17h6" /></svg>
             </button>
             <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#7fc8ff] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              CODE EDITOR
+              EXPORT
+            </span>
+          </div>
+
+          <div className="group relative flex items-center justify-center w-full">
+            <button
+              disabled={interactionDisabled}
+              onClick={() => document.getElementById("deck-file-input")?.click()}
+              aria-label="Import FORTRAN deck"
+              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#f5d996] hover:text-[#ffe7b1] hover:border-[#f5d996]/60 transition-colors"
+            >
+              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10H4z" /><path d="M14 4v6h6M12 13v6M9 16l3 3 3-3" /></svg>
+            </button>
+            <span className="pointer-events-none absolute left-14 ml-2 rounded-[2px] border border-[#3a444d] bg-[#101316] px-2.5 py-1 text-[10px] font-mono font-bold text-[#f5d996] shadow-xl opacity-0 transition-opacity group-hover:opacity-100 z-50">
+              IMPORT
+            </span>
+          </div>
+
+          <div className="group relative flex items-center justify-center w-full">
+            <button
+              type="button"
+              onClick={onOpenCheatSheet}
+              aria-label="Open FORTRAN cheat sheet"
+              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#b8e7ff] hover:text-[#e1f5ff] hover:border-[#7fc8ff]/60 transition-colors"
+            >
+              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H12v17H6.5A2.5 2.5 0 0 0 4 22z" />
+                <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H12v17h5.5A2.5 2.5 0 0 1 20 22z" />
+              </svg>
+            </button>
+            <span className="pointer-events-none absolute left-14 ml-2 rounded-[2px] border border-[#3a444d] bg-[#101316] px-2.5 py-1 text-[10px] font-mono font-bold text-[#b8e7ff] shadow-xl opacity-0 transition-opacity group-hover:opacity-100 z-50">
+              NOTES
             </span>
           </div>
 

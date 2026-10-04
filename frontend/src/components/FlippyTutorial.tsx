@@ -98,6 +98,7 @@ interface FlippyTutorialProps {
   activeLevel: LevelId | null;
   challengeCards: string[];
   challengeTitle: string;
+  challengePrompt: string;
   onLevelComplete: () => void;
 }
 
@@ -116,6 +117,7 @@ export default function FlippyTutorial({
   activeLevel,
   challengeCards,
   challengeTitle,
+  challengePrompt,
   onLevelComplete,
 }: FlippyTutorialProps) {
   const [mode, setMode] = useState<TutorialMode>(activeLevel ? "cards" : "tour");
@@ -154,6 +156,18 @@ export default function FlippyTutorial({
   }, [activeLevel, completed, onLevelComplete, successVisible]);
 
   useEffect(() => {
+    if (!successVisible) return;
+    const handleSuccessKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" || event.key === "Enter") {
+        event.preventDefault();
+        onLevelComplete();
+      }
+    };
+    window.addEventListener("keydown", handleSuccessKey);
+    return () => window.removeEventListener("keydown", handleSuccessKey);
+  }, [onLevelComplete, successVisible]);
+
+  useEffect(() => {
     if (!activeLevel || displayMode !== "cards") return;
     const blockOutsideCurrentCard = (event: PointerEvent) => {
       const target = event.target;
@@ -168,6 +182,14 @@ export default function FlippyTutorial({
   const current = useMemo<TutorialStep>(() => {
     if (displayMode === "tour") return TOUR_STEPS[tourStep];
     if (displayMode === "cards") {
+      if (activeLevel) {
+        return {
+          title: challengeTitle,
+          message: challengePrompt,
+          hint: "Use the level objective as your question. Punch your solution, then press ENTER to release each card.",
+          target: "#punch-bed",
+        };
+      }
       return {
         ...cardInstructions[cardStep],
         target: "#punch-bed",
@@ -205,7 +227,7 @@ export default function FlippyTutorial({
       hint: "You can keep experimenting with the machine after closing this guide.",
       target: "#line-printer",
     };
-  }, [activeLevel, cardInstructions, cardStep, challengeTitle, displayMode, tourStep]);
+  }, [activeLevel, cardInstructions, cardStep, challengePrompt, challengeTitle, displayMode, tourStep]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setFrame((value) => (value + 1) % 2), 450);
@@ -276,7 +298,7 @@ export default function FlippyTutorial({
   const progress = displayMode === "tour"
     ? `${tourStep + 1}/${TOUR_STEPS.length}`
     : displayMode === "cards"
-      ? `CARD ${cardStep + 1}/${cardInstructions.length}`
+      ? activeLevel ? "LEVEL" : `CARD ${cardStep + 1}/${cardInstructions.length}`
       : "";
 
   return (
@@ -362,6 +384,13 @@ export default function FlippyTutorial({
             <div className="success-check mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#9be2b0] text-3xl font-black text-[#9be2b0]">✓</div>
             <div className="text-xl font-black tracking-[0.16em] text-[#d9ffe3]">LEVEL COMPLETE</div>
             <div className="mt-2 text-[11px] uppercase tracking-wider text-[#9be2b0]">{challengeTitle} accepted</div>
+            <button
+              type="button"
+              onClick={onLevelComplete}
+              className="mt-5 border border-[#9be2b0] bg-[#28543a] px-4 py-2 text-[10px] font-bold tracking-wider text-[#d9ffe3] hover:bg-[#34704d]"
+            >
+              OPEN LEVEL MENU
+            </button>
           </div>
         </div>
       )}

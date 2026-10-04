@@ -9,6 +9,7 @@ import {
   playPrinterSound,
   playLockSound,
   playPaperEnterSound,
+  playPaperScrapSound,
   playPaperDeckSound,
   playHoverSound,
   playButtonSound,
@@ -33,6 +34,31 @@ const TUTORIAL_DECK = [
   "      END",
 ];
 
+const CHEAT_SHEET = {
+  Python: [
+    ["Variables", "x = 4"],
+    ["Output", "print(x)"],
+    ["Loop", "for i in range(1, 6):"],
+    ["Condition", "if x == 4:"],
+    ["Stop", "return / exit()"],
+  ],
+  JavaScript: [
+    ["Variables", "let x = 4;"],
+    ["Output", "console.log(x);"],
+    ["Loop", "for (let i = 1; i <= 5; i++)"],
+    ["Condition", "if (x === 4)"],
+    ["Stop", "return;"],
+  ],
+  FORTRAN: [
+    ["Variables", "X = 4"],
+    ["Output", "WRITE(6, 10) X"],
+    ["Loop", "DO 10 I = 1, 5"],
+    ["Condition", "IF (X - 4) 20, 10, 20"],
+    ["Stop", "STOP  /  END"],
+  ],
+} as const;
+type CheatSheetLanguage = keyof typeof CHEAT_SHEET;
+
 export default function Home() {
   const [currentCols, setCurrentCols] = useState<string[]>(Array(80).fill(" "));
   const [colIdx, setColIdx] = useState<number>(0);
@@ -54,6 +80,7 @@ export default function Home() {
   const [hasCompiled, setHasCompiled] = useState(false);
   const [tutorialCardIndex, setTutorialCardIndex] = useState(0);
   const [lastReleaseCorrect, setLastReleaseCorrect] = useState<boolean | null>(null);
+  const [pendingScrap, setPendingScrap] = useState(false);
   const [releaseRevision, setReleaseRevision] = useState(0);
   const [scrapRevision, setScrapRevision] = useState(0);
   const [tutorialVisible, setTutorialVisible] = useState(true);
@@ -63,6 +90,9 @@ export default function Home() {
   const [activeLevel, setActiveLevel] = useState<LevelId | null>(null);
   const [ambienceVolume, setAmbienceVolumeState] = useState(0.2);
   const [objectivePosition, setObjectivePosition] = useState<{ left: number; top: number } | null>(null);
+  const [showLevelHint, setShowLevelHint] = useState(false);
+  const [cheatSheetOpen, setCheatSheetOpen] = useState(false);
+  const [cheatSheetLanguage, setCheatSheetLanguage] = useState<CheatSheetLanguage>("FORTRAN");
   const objectiveDragRef = useRef<{ offsetX: number; offsetY: number; width: number; height: number } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -81,6 +111,7 @@ export default function Home() {
     setCurrentCols(Array(80).fill(" "));
     setColIdx(0);
     setLastReleaseCorrect(null);
+    setPendingScrap(false);
     setReleaseRevision(0);
     setScrapRevision(0);
     setHasCompiled(false);
@@ -183,9 +214,12 @@ export default function Home() {
     setCurrentCols((prev) => {
       const next = [...prev];
       next[col] = charToCopy;
+      currentColsRef.current = next;
       return next;
     });
-    setColIdx((prev) => Math.min(80, prev + 1));
+    const nextCol = Math.min(80, col + 1);
+    colIdxRef.current = nextCol;
+    setColIdx(nextCol);
   }, [triggerEscapementKick]);
 
   const startDup = useCallback(() => {
@@ -223,11 +257,13 @@ export default function Home() {
     }
 
     const challengeCards = activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK;
-    const hasPunchedContent = currentColsRef.current.slice(0, 72).join("").trim().length > 0;
+    const hasPunchedContent = currentColsRef.current.join("").trim().length > 0;
+    // The guide requires an incorrect card to be scrapped before retrying.
+    // Once the guide is dismissed, operators should still be able to punch
+    // and release cards without being trapped by that tutorial-only guard.
     if (
-      tutorialCardIndex >= challengeCards.length ||
-      lastReleaseCorrect === false ||
-      !hasPunchedContent
+      !hasPunchedContent ||
+      (tutorialVisible && (tutorialCardIndex >= challengeCards.length || pendingScrap))
     ) {
       playLockSound();
       return;
@@ -246,6 +282,7 @@ export default function Home() {
       ? finalCard.slice(0, 72).join("").trimEnd() === expectedCard
       : null;
     setLastReleaseCorrect(releaseIsCorrect);
+    setPendingScrap(releaseIsCorrect === false);
     setReleaseRevision((revision) => revision + 1);
     if (releaseIsCorrect) {
       setTutorialCardIndex((index) => Math.min(challengeCards.length, index + 1));
@@ -264,16 +301,22 @@ export default function Home() {
       setStacker((prev) => [...prev, finalCard]);
       setReadCard(finalCard);
       setInspectingIdx(null);
-      setCurrentCols(Array(80).fill(" "));
+      const emptyCard = Array(80).fill(" ");
+      currentColsRef.current = emptyCard;
+      colIdxRef.current = 0;
+      setCurrentCols(emptyCard);
       setColIdx(0);
       return;
     }
 
     setStacker((prev) => [...prev, finalCard]);
     setReadCard(finalCard);
-    setCurrentCols(Array(80).fill(" "));
+    const emptyCard = Array(80).fill(" ");
+    currentColsRef.current = emptyCard;
+    colIdxRef.current = 0;
+    setCurrentCols(emptyCard);
     setColIdx(0);
-  }, [activeLevel, lastReleaseCorrect, tutorialCardIndex, triggerEscapementKick]);
+  }, [activeLevel, pendingScrap, tutorialCardIndex, tutorialVisible, triggerEscapementKick]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent | KeyboardEvent) => {
     if (e.key === "Alt" || e.key === "Control") {
@@ -311,12 +354,15 @@ export default function Home() {
       e.preventDefault();
       playPunchSound();
       triggerEscapementKick();
-      const cur = colIdx;
+      const cur = colIdxRef.current;
       if (cur < 6) {
+        colIdxRef.current = 6;
         setColIdx(6);
       } else if (cur < 72) {
+        colIdxRef.current = 72;
         setColIdx(72);
       } else if (cur < 79) {
+        colIdxRef.current = 79;
         setColIdx(79);
       } else {
         playLockSound();
@@ -330,39 +376,54 @@ export default function Home() {
       return;
     }
 
-    if (colIdx >= 80) {
+    const currentCol = colIdxRef.current;
+    if (currentCol >= 80) {
       playLockSound();
       return;
     }
 
     const char = e.key.toUpperCase();
-    if (char.length === 1 && colIdx < 80) {
+    if (char.length === 1 && currentCol < 80) {
       if (char in HOLLERITH_MAP) {
         playPunchSound();
         triggerEscapementKick();
-        const next = [...currentCols];
-        next[colIdx] = char;
+        const next = [...currentColsRef.current];
+        next[currentCol] = char;
+        currentColsRef.current = next;
         setCurrentCols(next);
 
-        if (progControlRef.current && colIdx === 71) {
+        const nextCol = progControlRef.current && currentCol === 71
+          ? 72
+          : Math.min(80, currentCol + 1);
+        colIdxRef.current = nextCol;
+        if (progControlRef.current && currentCol === 71) {
           setColIdx(72);
         } else {
-          setColIdx((prev) => Math.min(80, prev + 1));
+          setColIdx(nextCol);
         }
       } else {
         playLockSound();
       }
     }
-  }, [colIdx, currentCols, inspectingIdx, releaseCard, startDup, triggerEscapementKick]);
+  }, [inspectingIdx, releaseCard, startDup, triggerEscapementKick]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const target = e.target;
+      const isControl = target instanceof HTMLElement &&
+        target.closest("button, a, input, textarea, select");
+      if (e.key === "Enter" && !isControl) {
+        e.preventDefault();
+        e.stopPropagation();
+        containerRef.current?.focus();
+        releaseCard();
+        return;
+      }
+
       if (document.activeElement === containerRef.current) return;
 
-      const target = e.target;
       if (
-        target instanceof HTMLElement &&
-        target.closest("button, a, input, textarea, select") &&
+        isControl &&
         e.key.length !== 1
       ) {
         return;
@@ -372,9 +433,10 @@ export default function Home() {
       handleKeyDown(e);
     };
 
-    window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [handleKeyDown]);
+    window.addEventListener("keydown", handleGlobalKeyDown, true);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown, true);
+
+  }, [handleKeyDown, releaseCard]);
 
   const handleKeyUp = (e: React.KeyboardEvent) => {
     if (e.key === "Alt" || e.key === "Control") {
@@ -392,6 +454,55 @@ export default function Home() {
     setCurrentCols(Array(80).fill(" "));
     setColIdx(0);
     setInspectingIdx(null);
+  };
+
+  const openCodeEditor = () => {
+    const cards = [...stacker];
+    const activeText = currentCols.join("").trimEnd();
+    if (activeText.length > 0) cards.push(currentCols);
+    const source = cards.map((card) => card.join("").padEnd(80, " ").slice(0, 80)).join("\n");
+    if (!source) {
+      playLockSound();
+      return;
+    }
+    const file = new Blob([`${source}\n`], {
+      type: "text/plain;charset=utf-8",
+    });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "punchcode-deck.f";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importDeck = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") return;
+      const cards = reader.result
+        .replace(/\r\n/g, "\n")
+        .split("\n")
+        .filter((line, index, lines) => line.length > 0 || index < lines.length - 1)
+        .map((line) => line.slice(0, 80).padEnd(80, " ").split(""));
+      if (cards.length === 0) {
+        setPrinterOutput(["*** FILE REJECTED ***", "The selected FORTRAN file contains no cards."]);
+        return;
+      }
+      setStacker(cards);
+      setReadCard(cards[cards.length - 1] ?? null);
+      setCurrentCols(Array(80).fill(" "));
+      setColIdx(0);
+      setInspectingIdx(null);
+      setPendingScrap(false);
+      setLastReleaseCorrect(null);
+      setPrinterOutput([`IMPORTED ${cards.length} CARDS FROM ${file.name}`, "DECK LOADED INTO CARD STACKER."]);
+    };
+    reader.onerror = () => setPrinterOutput(["*** FILE READ ERROR ***", "Unable to read the selected FORTRAN deck."]);
+    reader.readAsText(file);
+    event.target.value = "";
   };
 
   const handleExecuteDeck = async () => {
@@ -414,11 +525,9 @@ export default function Home() {
     }
 
     const cardsPayload = fullDeck.map((c) => c.join(""));
-    const challengeCards = activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK;
-    const isChallengeDeck = activeLevel
-      ? cardsPayload.length === challengeCards.length
-      : cardsPayload.length === TUTORIAL_DECK.length &&
-        cardsPayload.every((card, index) => card.slice(0, 72).trimEnd() === TUTORIAL_DECK[index]);
+    const isTutorialDeck = !activeLevel &&
+      cardsPayload.length === TUTORIAL_DECK.length &&
+      cardsPayload.every((card, index) => card.slice(0, 72).trimEnd() === TUTORIAL_DECK[index]);
 
     setPrinterOutput([
       `IBM 2501 CARD READER: INGESTED ${fullDeck.length} CARDS`,
@@ -442,7 +551,10 @@ export default function Home() {
       const outputMatchesChallenge = activeLevel
         ? getLevel(activeLevel).acceptedOutput.test(outputText)
         : outputText.toUpperCase().includes("HELLO WORLD");
-      if (isChallengeDeck && outputMatchesChallenge) setHelloWorldComplete(true);
+      const outputIsSuccessful = !data.is_error && outputMatchesChallenge;
+      if ((activeLevel ? outputIsSuccessful : isTutorialDeck && outputIsSuccessful)) {
+        setHelloWorldComplete(true);
+      }
 
       setPrinterOutput([
         `BATCH JOB EXECUTION REPORT • ${fullDeck.length} CARDS PROCESSED`,
@@ -481,13 +593,14 @@ export default function Home() {
           activeLevel={activeLevel}
           challengeCards={activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK}
           challengeTitle={activeLevel ? getLevel(activeLevel).title : "Hello World"}
+          challengePrompt={activeLevel ? getLevel(activeLevel).prompt : ""}
           onLevelComplete={() => {
             setTutorialVisible(false);
             setOpenLevelsRequest((request) => request + 1);
           }}
           onDismiss={() => setTutorialVisible(false)}
           onScrapCard={() => {
-            playPaperEnterSound();
+            playPaperScrapSound();
             setStacker((prev) => {
               const indexToRemove = inspectingIdx ?? prev.length - 1;
               if (indexToRemove < 0) return prev;
@@ -496,12 +609,13 @@ export default function Home() {
             setInspectingIdx(null);
             setScrapRevision(releaseRevision);
             setLastReleaseCorrect(null);
+            setPendingScrap(false);
           }}
         />
       )}
       <Sidebar 
         onScrapDeck={handleScrapDeck} 
-        onEnterCodeEditor={() => setTutorialVisible(false)}
+        onEnterCodeEditor={openCodeEditor}
         ambienceVolume={ambienceVolume}
         onAmbienceVolumeChange={(volume) => {
           setAmbienceVolumeState(volume);
@@ -509,8 +623,10 @@ export default function Home() {
         }}
         interactionDisabled={tutorialVisible}
         openLevelsRequest={openLevelsRequest}
+        onOpenCheatSheet={() => setCheatSheetOpen(true)}
         onSelectTutorial={() => {
           setActiveLevel(null);
+          setShowLevelHint(false);
           setTutorialCardIndex(0);
           setHelloWorldComplete(false);
           resetDeck();
@@ -519,6 +635,7 @@ export default function Home() {
         }}
         onSelectLevel={(level) => {
           setActiveLevel(level);
+          setShowLevelHint(false);
           setTutorialCardIndex(0);
           setHelloWorldComplete(false);
           resetDeck();
@@ -526,10 +643,61 @@ export default function Home() {
           setTutorialVisible(true);
         }}
       />
+      <input
+        id="deck-file-input"
+        type="file"
+        accept=".f,text/plain"
+        onChange={importDeck}
+        className="hidden"
+        aria-label="Import FORTRAN deck file"
+      />
+
+      {cheatSheetOpen && (
+        <aside
+          className="fixed left-1/2 top-1/2 z-[75] w-[min(720px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 border-2 border-[#7fc8ff]/60 bg-[#151a1f]/98 p-[clamp(0.75rem,2vw,1.25rem)] font-mono text-[#d9e0e4] shadow-[0_18px_50px_rgba(0,0,0,0.8)]"
+          aria-label="Programming cheat sheet"
+        >
+          <div className="mb-3 flex items-center justify-between border-b border-[#35414b] pb-2">
+            <div className="flex items-center gap-2 text-xs font-black tracking-[0.18em] text-[#b8e7ff]">
+              <span aria-hidden="true">BOOK</span> NOTES
+            </div>
+            <button type="button" aria-label="Close code cheat sheet" onClick={() => setCheatSheetOpen(false)} className="px-2 text-lg text-[#8d9aa4] hover:text-[#b8e7ff]">×</button>
+          </div>
+          <p className="mb-3 text-[10px] leading-relaxed text-[#9eabb4]">
+            Common commands translated between three languages. Select a tab to compare syntax.
+          </p>
+          <div className="mb-3 flex border-b border-[#35414b]">
+            {(Object.keys(CHEAT_SHEET) as CheatSheetLanguage[]).map((language) => (
+              <button
+                key={language}
+                type="button"
+                onClick={() => setCheatSheetLanguage(language)}
+                className={`flex-1 border-b-2 px-2 py-2 text-[10px] font-bold uppercase tracking-wider ${
+                  cheatSheetLanguage === language
+                    ? "border-[#f5d996] text-[#f5d996]"
+                    : "border-transparent text-[#82909b] hover:text-[#d9e0e4]"
+                }`}
+              >
+                {language}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-2 text-[clamp(9px,1.2vw,11px)] sm:grid-cols-2">
+            {CHEAT_SHEET[cheatSheetLanguage].map(([command, syntax]) => (
+              <div key={command} className="flex items-center justify-between gap-3 border border-[#35414b] bg-[#1d252b] p-2">
+                <span className="text-[#8f9da6]">{command}</span>
+                <code className="text-right text-[#f5d996]">{syntax}</code>
+              </div>
+            ))}
+          </div>
+        </aside>
+      )}
 
       {activeLevel && (
         <aside
-          className="fixed z-[60] flex h-[min(120px,calc(100dvh-2rem))] min-h-[96px] min-w-[240px] w-[min(360px,calc(100vw-6rem))] resize flex-col overflow-hidden border border-[#8d7546] bg-[#1b2126]/95 font-mono shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm"
+          className={`fixed z-[60] flex min-h-[96px] min-w-[240px] w-[min(360px,calc(100vw-6rem))] resize flex-col overflow-hidden border border-[#8d7546] bg-[#1b2126]/95 font-mono shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm transition-[height] duration-200 ${
+            showLevelHint ? "h-[min(220px,calc(100dvh-2rem))]" : "h-[min(120px,calc(100dvh-2rem))]"
+          }`}
           style={objectivePosition ? { left: objectivePosition.left, top: objectivePosition.top } : { right: "1rem", bottom: "1rem" }}
           aria-label="Level objective"
         >
@@ -541,7 +709,22 @@ export default function Home() {
             LEVEL {activeLevel}: {getLevel(activeLevel).title}
           </div>
           <div className="min-h-0 overflow-y-auto p-3 text-[11px] leading-relaxed text-[#d1d8dc] break-words">
-            {getLevel(activeLevel).prompt}
+            <p>{getLevel(activeLevel).prompt}</p>
+            {showLevelHint && (
+              <p className="mt-2 border-t border-[#594d37] pt-2 text-[#e4c46d]">
+                HINT: {getLevel(activeLevel).hint}
+              </p>
+            )}
+          </div>
+          <div className="shrink-0 border-t border-[#594d37] bg-[#242b31] px-3 py-2">
+            <button
+              type="button"
+              onClick={() => setShowLevelHint((visible) => !visible)}
+              onPointerDown={(event) => event.stopPropagation()}
+              className="border border-[#8d7546] px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[#e4c46d] hover:bg-[#343b40]"
+            >
+              {showLevelHint ? "Hide hint" : "Hint"}
+            </button>
           </div>
         </aside>
       )}
@@ -612,7 +795,12 @@ export default function Home() {
                       return (
                         <div
                           key={idx}
-                          onClick={() => setInspectingIdx(isInspected ? null : idx)}
+                          onClick={() => {
+                            const isGuidedLevel = tutorialVisible && activeLevel !== null;
+                            const isRejectedCard = idx === stacker.length - 1 && pendingScrap;
+                            if (isGuidedLevel && !isRejectedCard) return;
+                            setInspectingIdx(isInspected ? null : idx);
+                          }}
                           className={`punch-card-entry punch-card-interactive relative w-full cursor-pointer ${
                             idx !== 0 ? "-mt-[112px]" : ""
                           } ${
@@ -721,7 +909,7 @@ export default function Home() {
                     <button
                       data-paper-action="true"
                       onClick={() => {
-                        playPaperEnterSound();
+                        playPaperScrapSound();
                         setStacker((prev) => prev.filter((_, i) => i !== inspectingIdx));
                         setInspectingIdx(null);
                         setScrapRevision(releaseRevision);
