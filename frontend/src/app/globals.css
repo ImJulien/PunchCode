@@ -13,15 +13,195 @@ body {
   overflow-y: auto;
 }
 
+[data-theme="amber"] {
+  background-color: #17130e !important;
+}
+
+[data-theme="amber"] > aside {
+  background: #211b15 !important;
+  border-color: #4f3b27 !important;
+}
+
+[data-theme="amber"] #workstation-frame {
+  background: #554635 !important;
+  border-color: #30251a !important;
+}
+
+[data-theme="amber"] #machine-header {
+  background: #30251a !important;
+  border-color: #1e1710 !important;
+}
+
+[data-theme="amber"] #machine-top-deck,
+[data-theme="amber"] #punch-bed {
+  background: #352a1e !important;
+  border-color: #21180f !important;
+}
+
+[data-theme="amber"] #feed-hopper,
+[data-theme="amber"] #program-unit,
+[data-theme="amber"] #card-stacker {
+  background: #241c14 !important;
+  border-color: #17110c !important;
+}
+
+[data-theme="amber"] #machine-key-help {
+  background: #2d2419 !important;
+}
+
+[data-theme="amber"] #line-printer {
+  border-color: #30251a !important;
+}
+
+[data-theme="amber"] #line-printer > div:first-child {
+  background: #2d2419 !important;
+  border-color: #4f3b27 !important;
+}
+
+[data-theme="ocean"] {
+  background-color: #0c1820 !important;
+}
+
+[data-theme="ocean"] > aside {
+  background: #102630 !important;
+  border-color: #214653 !important;
+}
+
+[data-theme="ocean"] #workstation-frame {
+  background: #31505a !important;
+  border-color: #19323c !important;
+}
+
+[data-theme="ocean"] #machine-header {
+  background: #172f39 !important;
+  border-color: #0d2029 !important;
+}
+
+[data-theme="ocean"] #machine-top-deck,
+[data-theme="ocean"] #punch-bed {
+  background: #1d3d47 !important;
+  border-color: #122b34 !important;
+}
+
+[data-theme="ocean"] #feed-hopper,
+[data-theme="ocean"] #program-unit,
+[data-theme="ocean"] #card-stacker {
+  background: #10232b !important;
+  border-color: #09171d !important;
+}
+
+[data-theme="ocean"] #machine-key-help {
+  background: #18343e !important;
+}
+
+[data-theme="ocean"] #line-printer {
+  border-color: #19323c !important;
+}
+
+[data-theme="ocean"] #line-printer > div:first-child {
+  background: #17313b !important;
+  border-color: #285363 !important;
+}
+
+[data-theme="paper"] {
+  background-color: #292822 !important;
+}
+
+[data-theme="paper"] > aside {
+  background: #35332b !important;
+  border-color: #5e5949 !important;
+}
+
+[data-theme="paper"] #workstation-frame {
+  background: #686354 !important;
+  border-color: #3d3a31 !important;
+}
+
+[data-theme="paper"] #machine-header {
+  background: #403e35 !important;
+  border-color: #292720 !important;
+}
+
+[data-theme="paper"] #machine-top-deck,
+[data-theme="paper"] #punch-bed {
+  background: #4c493d !important;
+  border-color: #333128 !important;
+}
+
+[data-theme="paper"] #feed-hopper,
+[data-theme="paper"] #program-unit,
+[data-theme="paper"] #card-stacker {
+  background: #302f28 !important;
+  border-color: #1f1e19 !important;
+}
+
+[data-theme="paper"] #machine-key-help {
+  background: #464338 !important;
+}
+
+[data-theme="paper"] #line-printer {
+  border-color: #3d3a31 !important;
+}
+
+[data-theme="paper"] #line-printer > div:first-child {
+  background: #403e35 !important;
+  border-color: #5e5949 !important;
+}
+
+
+[data-theme="amber"] #card-stacker > div:first-child,
+[data-theme="amber"] #feed-hopper > div:first-child {
+  background: #2d2419 !important;
+  border-color: #4f3b27 !important;
+}
+
+[data-theme="amber"] #card-stacker > div:nth-child(2) {
+  background: #1e1710 !important;
+}
+
+[data-theme="amber"] #machine-key-help span,
+[data-theme="amber"] #punch-bed button:not([data-paper-action]),
+[data-theme="amber"] #line-printer button:not(#compile-button) {
+  background: #3d3021 !important;
+  border-color: #765b35 !important;
+}
+
+[data-theme="ocean"] #card-stacker > div:first-child,
+[data-theme="ocean"] #feed-hopper > div:first-child {
+  background: #17313b !important;
+  border-color: #285363 !important;
+}
+
+[data-theme="ocean"] #card-stacker > div:nth-child(2) {
+  background: #0b1b22 !important;
+}
+
+[data-theme="ocean"] #machine-key-help span,
+[data-theme="ocean"] #punch-bed button:not([data-paper-action]),
+[data-theme="ocean"] #line-printer button:not(#compile-button) {
+  background: #214653 !important;
+  border-color: #4b7b88 !important;
+}
+
+[data-theme="paper"] #card-stacker > div:first-child,
+[data-theme="paper"] #feed-hopper > div:first-child {
+  background: #403e35 !important;
+  border-color: #5e5949 !important;
+}
+
+[data-theme="paper"] #card-stacker > div:nth-child(2) {
+  background: #282720 !important;
+}
+
+[data-theme="paper"] #machine-key-help span,
+[data-theme="paper"] #punch-bed button:not([data-paper-action]),
+[data-theme="paper"] #line-printer button:not(#compile-button) {
+  background: #575247 !important;
+  border-color: #817660 !important;
+}
+
 .workstation-content {
-  --workstation-scale: clamp(
-    0.4,
-    min(
-      calc((100vw - 5rem) / 1152px),
-      calc((100vh - 2rem) / 1000px)
-    ),
-    1.3
-  );
+  --workstation-scale: max(0.65, calc((100vw - 5rem) / 1152px));
   width: 1152px;
   max-width: none;
   transform-origin: top center;
@@ -44,6 +224,15 @@ body {
 .compiler-printer-fullscreen {
   height: 100%;
   border-radius: 0;
+}
+
+#line-printer:not(.compiler-printer-fullscreen) {
+  height: clamp(110px, 22vh, 320px);
+  max-height: max(110px, calc(100dvh - 28rem));
+}
+
+#line-printer.compiler-printer-fullscreen {
+  max-height: none;
 }
 
 .compiler-printer-fullscreen #output-code {
@@ -215,6 +404,10 @@ body {
 }
 
 @media (max-width: 640px) {
+  .workstation-content {
+    --workstation-scale: clamp(0.4, calc((100vw - 5rem) / 1152px), 1.3);
+  }
+
   .flippy-guide {
     width: calc(100vw - 2rem);
     max-height: 42vh;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import {
   initAudio,
   playPunchSound,
@@ -14,14 +15,16 @@ import {
   playHoverSound,
   playButtonSound,
   preloadAudio,
-  setAmbienceVolume,
+  setMusicVolume,
+  setSoundEffectsVolume,
+  setMasterVolume,
   playCompileSound,
   playErrorSound,
 } from "../lib/audio";
 import { HOLLERITH_MAP, ROWS } from "../lib/hollerith";
 import PunchCard from "../components/PunchCard";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar, { ThemeId } from "../components/Sidebar";
 import ProgramUnit from "../components/ProgramUnit";
 import FeedHopper from "../components/FeedHopper";
 import FlippyTutorial from "../components/FlippyTutorial";
@@ -90,7 +93,10 @@ export default function Home() {
   const [openLevelsRequest, setOpenLevelsRequest] = useState(0);
   const [guideSession, setGuideSession] = useState(0);
   const [activeLevel, setActiveLevel] = useState<LevelId | null>(null);
-  const [ambienceVolume, setAmbienceVolumeState] = useState(0.2);
+  const [musicVolume, setMusicVolumeState] = useState(0.2);
+  const [soundEffectsVolume, setSoundEffectsVolumeState] = useState(1);
+  const [masterVolume, setMasterVolumeState] = useState(1);
+  const [theme, setTheme] = useState<ThemeId>("console");
   const [objectivePosition, setObjectivePosition] = useState<{ left: number; top: number } | null>(null);
   const [objectiveHidden, setObjectiveHidden] = useState(false);
   const [showLevelHint, setShowLevelHint] = useState(false);
@@ -101,6 +107,7 @@ export default function Home() {
   const newestCardRef = useRef<HTMLDivElement>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const workstationRef = useRef<HTMLDivElement>(null);
 
   const colIdxRef = useRef(colIdx);
   const currentColsRef = useRef(currentCols);
@@ -110,6 +117,28 @@ export default function Home() {
   const hopperCountRef = useRef(hopperCount);
   const compilerErrorShakeTimerRef = useRef<number | null>(null);
   const successFeedbackTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const workstation = workstationRef.current;
+    if (!workstation) return;
+
+    const syncFlowHeight = () => {
+      const layoutHeight = workstation.offsetHeight;
+      const renderedHeight = workstation.getBoundingClientRect().height;
+      workstation.style.marginBottom = `${Math.round(renderedHeight - layoutHeight)}px`;
+    };
+
+    const resizeObserver = new ResizeObserver(syncFlowHeight);
+    resizeObserver.observe(workstation);
+    window.addEventListener("resize", syncFlowHeight);
+    syncFlowHeight();
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", syncFlowHeight);
+      workstation.style.marginBottom = "";
+    };
+  }, [compilerFullscreen]);
 
   const triggerCompilerError = useCallback(() => {
     playErrorSound();
@@ -643,7 +672,11 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-dvh overflow-x-hidden overflow-y-auto bg-[#141618] text-[#c5cfd6] flex">
+    <div data-theme={theme} className="min-h-dvh overflow-x-hidden overflow-y-auto bg-[#141618] text-[#c5cfd6] flex">
+      <div className="pointer-events-none fixed right-4 top-4 z-[55] hidden items-center gap-2 border border-[#52606e]/70 bg-[#101316]/75 px-2.5 py-1.5 font-mono shadow-[0_5px_16px_rgba(0,0,0,0.35)] backdrop-blur-sm lg:flex">
+        <Image src="/Logo.ico" alt="" width={16} height={16} className="h-4 w-4 object-contain opacity-85" />
+        <span className="text-[10px] font-black tracking-[0.2em] text-[#c5cfd6]">PUNCHCODE</span>
+      </div>
       {tutorialVisible && (
         <FlippyTutorial
           key={`${activeLevel ?? "tutorial"}-${guideSession}`}
@@ -695,11 +728,23 @@ export default function Home() {
       <Sidebar 
         onScrapDeck={handleScrapDeck} 
         onEnterCodeEditor={openCodeEditor}
-        ambienceVolume={ambienceVolume}
-        onAmbienceVolumeChange={(volume) => {
-          setAmbienceVolumeState(volume);
-          setAmbienceVolume(volume);
+        musicVolume={musicVolume}
+        onMusicVolumeChange={(volume) => {
+          setMusicVolumeState(volume);
+          setMusicVolume(volume);
         }}
+        soundEffectsVolume={soundEffectsVolume}
+        onSoundEffectsVolumeChange={(volume) => {
+          setSoundEffectsVolumeState(volume);
+          setSoundEffectsVolume(volume);
+        }}
+        masterVolume={masterVolume}
+        onMasterVolumeChange={(volume) => {
+          setMasterVolumeState(volume);
+          setMasterVolume(volume);
+        }}
+        theme={theme}
+        onThemeChange={setTheme}
         interactionDisabled={tutorialVisible}
         openLevelsRequest={openLevelsRequest}
         onOpenCheatSheet={() => setCheatSheetOpen((open) => !open)}
@@ -838,8 +883,8 @@ export default function Home() {
         }}
         className={`flex-1 min-w-0 min-h-0 ml-16 p-3 lg:p-5 flex flex-col items-center gap-3 font-sans outline-none select-none relative z-10 ${compilerErrorShake ? "compiler-error-shake" : successFeedback ? "compiler-success-feedback" : ""}`}
       >
-        <div id="ibm-machine" className={`workstation-content w-full max-w-6xl flex-none flex flex-col gap-3 ${compilerFullscreen ? "compiler-fullscreen" : ""}`}>
-        <div className={`no-scrollbar w-full flex-none overflow-hidden bg-[#37414b] border-[10px] border-[#252c33] rounded-lg shadow-[0_30px_60px_rgba(0,0,0,0.8),inset_0_2px_2px_rgba(255,255,255,0.05)] flex flex-col relative ${compilerFullscreen ? "hidden" : ""}`}>
+        <div ref={workstationRef} id="ibm-machine" className={`workstation-content w-full max-w-6xl flex-none flex flex-col gap-3 ${compilerFullscreen ? "compiler-fullscreen" : ""}`}>
+        <div id="workstation-frame" className={`no-scrollbar w-full flex-none overflow-hidden bg-[#37414b] border-[10px] border-[#252c33] rounded-lg shadow-[0_30px_60px_rgba(0,0,0,0.8),inset_0_2px_2px_rgba(255,255,255,0.05)] flex flex-col relative ${compilerFullscreen ? "hidden" : ""}`}>
           
           <div id="machine-header" className="bg-[#1e242a] border-b-2 border-[#15191d] px-6 py-3.5 flex justify-between items-center text-[#e1e4e6] shadow-[inset_0_-2px_10px_rgba(0,0,0,0.5)]">
             <div className="flex items-center gap-4">
@@ -866,7 +911,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-[#3c4652] p-4 lg:p-6 border-b-4 border-[#21272e] grid grid-cols-12 gap-6 items-end shadow-[inset_0_2px_4px_rgba(255,255,255,0.05)]">
+          <div id="machine-top-deck" className="bg-[#3c4652] p-4 lg:p-6 border-b-4 border-[#21272e] grid grid-cols-12 gap-6 items-end shadow-[inset_0_2px_4px_rgba(255,255,255,0.05)]">
             
             <div id="card-stacker" className="order-3 col-span-5 bg-[#1c2126] border-2 border-[#121518] rounded-sm shadow-[inset_0_4px_12px_rgba(0,0,0,0.9)] flex flex-col h-[300px]">
               <div className="bg-[#171b1f] px-4 py-2 border-b border-[#252c33] flex justify-between items-center shadow-md z-10">
@@ -1046,7 +1091,7 @@ export default function Home() {
             <div className="w-full h-2 bg-gradient-to-b from-stone-400 via-stone-100 to-stone-300 border-y border-stone-600 rounded-sm shadow-sm" />
           </div>
 
-          <div className="bg-[#313942] px-8 py-4 flex flex-wrap justify-center items-center gap-4">
+          <div id="machine-key-help" className="bg-[#313942] px-8 py-4 flex flex-wrap justify-center items-center gap-4">
             <div id="key-help" className="flex flex-wrap justify-center items-center gap-2 text-[10px] font-mono text-[#a5b2bc] uppercase tracking-wider">
               <span className="bg-[#1c2228] px-2.5 py-1 border border-[#3b4752] shadow-inner"><kbd className="font-bold text-[#e0c482] mr-1.5">TAB</kbd> FIELD SKIP</span>
               <span className="bg-[#1c2228] px-2.5 py-1 border border-[#3b4752] shadow-inner"><kbd className="font-bold text-[#e0c482] mr-1.5">ALT/CTRL</kbd> DUPLICATE</span>
@@ -1057,7 +1102,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div id="line-printer" className={`w-full flex-none h-[clamp(145px,22vh,220px)] shadow-[0_20px_40px_rgba(0,0,0,0.8)] rounded overflow-hidden border-4 border-[#252c33] ${compilerFullscreen ? "compiler-printer-fullscreen" : ""}`}>
+        <div id="line-printer" className={`w-full flex-none shadow-[0_20px_40px_rgba(0,0,0,0.8)] rounded overflow-hidden border-4 border-[#252c33] ${compilerFullscreen ? "compiler-printer-fullscreen" : ""}`}>
           <div className="bg-[#1f252b] px-4 py-2 border-b border-[#2b333c] flex flex-wrap gap-2 justify-between items-center text-[10px] font-mono text-[#748494] tracking-wider uppercase">
             <span className="font-bold text-[#b5c1cc]">IBM 1403 LINE PRINTER</span>
             <div className="flex items-center gap-3">
@@ -1081,7 +1126,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="h-[calc(100%-42px)] flex bg-[#f0f5f0] text-[#1c2b1e]">
+          <div id="printer-paper" className="h-[calc(100%-42px)] flex bg-[#f0f5f0] text-[#1c2b1e]">
             <div className="w-7 border-r border-[#d4ded4] flex-shrink-0" style={{ backgroundImage: "radial-gradient(circle, #252c33 3.5px, transparent 4px)", backgroundSize: "28px 20px", backgroundPosition: "center 8px" }} />
 
             <div id="output-code" className="no-scrollbar min-w-0 flex-1 overflow-auto p-5 font-mono text-xs">

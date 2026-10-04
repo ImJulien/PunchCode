@@ -48,12 +48,17 @@ def apply_kernel_limits():
     """Restricts CPU time, RAM, and disk writes for the child process."""
     if not HAS_RESOURCE:
         return
-    # Max 2 seconds of pure CPU time
-    resource.setrlimit(resource.RLIMIT_CPU, (2, 2))
-    # Max 512 MB of virtual address space for user binaries
-    resource.setrlimit(resource.RLIMIT_AS, (512 * 1024 * 1024, 512 * 1024 * 1024))
-    # Max 1 MB file creation size (prevents disk-filling attacks)
-    resource.setrlimit(resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024))
+    limits = (
+        (resource.RLIMIT_CPU, (2, 2)),
+        (resource.RLIMIT_AS, (512 * 1024 * 1024, 512 * 1024 * 1024)),
+        (resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024)),
+    )
+    for limit, values in limits:
+        try:
+            resource.setrlimit(limit, values)
+        except (OSError, ValueError):
+            # Some limits are unavailable or restricted on macOS.
+            continue
     # Note: RLIMIT_NPROC is omitted to avoid blocking user process spawning on Linux
 
 @app.post("/api/run", response_model=ExecuteResponse)

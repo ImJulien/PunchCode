@@ -2,7 +2,9 @@
 
 let music: HTMLAudioElement | null = null;
 let lastHoveredButton: EventTarget | null = null;
-let ambienceVolume = 0.2;
+let musicVolume = 0.2;
+let soundEffectsVolume = 1;
+let masterVolume = 1;
 const audioCache = new Map<string, HTMLAudioElement>();
 const SOUND_FILES = [
   "punch.wav",
@@ -25,7 +27,7 @@ function playFile(file: string, volume: number, playbackRate = 1) {
   const source = audioCache.get(file) ?? new Audio(`/sounds/${file}`);
   audioCache.set(file, source);
   const audio = source.cloneNode(true) as HTMLAudioElement;
-  audio.volume = volume;
+  audio.volume = Math.min(1, Math.max(0, volume * soundEffectsVolume * masterVolume));
   audio.playbackRate = playbackRate;
   audio.play().catch(() => {});
 }
@@ -43,8 +45,8 @@ export function preloadAudio() {
     music = audioCache.get("music.mp3") ?? new Audio("/sounds/music.mp3");
     music.preload = "auto";
     music.loop = true;
-    music.volume = ambienceVolume;
-    music.muted = ambienceVolume === 0;
+    music.volume = musicVolume * masterVolume;
+    music.muted = musicVolume === 0 || masterVolume === 0;
     audioCache.set("music.mp3", music);
     music.load();
   }
@@ -56,7 +58,7 @@ export function initAudio() {
   if (!music) {
     music = audioCache.get("music.mp3") ?? new Audio("/sounds/music.mp3");
   }
-  if (ambienceVolume === 0) {
+  if (musicVolume === 0 || masterVolume === 0) {
     music.muted = true;
     music.pause();
     return;
@@ -65,11 +67,28 @@ export function initAudio() {
   music.play().catch(() => {});
 }
 
-export function setAmbienceVolume(volume: number) {
-  ambienceVolume = Math.min(1, Math.max(0, volume));
+export function setMusicVolume(volume: number) {
+  musicVolume = Math.min(1, Math.max(0, volume));
   if (!music) return;
-  music.volume = ambienceVolume;
-  if (ambienceVolume === 0) {
+  music.volume = musicVolume * masterVolume;
+  if (musicVolume === 0 || masterVolume === 0) {
+    music.muted = true;
+    music.pause();
+  } else {
+    music.muted = false;
+    music.play().catch(() => {});
+  }
+}
+
+export function setSoundEffectsVolume(volume: number) {
+  soundEffectsVolume = Math.min(1, Math.max(0, volume));
+}
+
+export function setMasterVolume(volume: number) {
+  masterVolume = Math.min(1, Math.max(0, volume));
+  if (!music) return;
+  music.volume = musicVolume * masterVolume;
+  if (masterVolume === 0 || musicVolume === 0) {
     music.muted = true;
     music.pause();
   } else {
