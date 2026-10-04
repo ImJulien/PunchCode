@@ -13,8 +13,8 @@ interface TutorialStep {
 
 const TOUR_STEPS: TutorialStep[] = [
   {
-    title: "Welcome to the 029",
-    message: "Follow the highlights. I will show each control before you use it.",
+    title: "Welcome to the IBM 029",
+    message: "Follow the highlights. I will show you how each section works before you use it.",
     hint: "Press NEXT.",
     target: "#machine-header",
   },
