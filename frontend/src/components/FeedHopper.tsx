@@ -2,15 +2,14 @@
 
 interface FeedHopperProps {
   hopperCount: number;
-  reloadHopper: () => void;
 }
 
-export default function FeedHopper({ hopperCount, reloadHopper }: FeedHopperProps) {
+export default function FeedHopper({ hopperCount }: FeedHopperProps) {
   // Convert 500 cards to a height percentage (0% to 100%)
   const stackHeight = (hopperCount / 500) * 100;
 
   return (
-    <div className="col-span-4 bg-[#1c2126] border-2 border-[#121518] p-3 rounded-sm shadow-[inset_0_4px_12px_rgba(0,0,0,0.9)] flex flex-col justify-between h-[300px]">
+    <div id="feed-hopper" className="order-1 col-span-4 bg-[#1c2126] border-2 border-[#121518] p-3 rounded-sm shadow-[inset_0_4px_12px_rgba(0,0,0,0.9)] flex flex-col justify-between h-[300px]">
       <div className="flex justify-between items-center border-b border-[#252c33] pb-2">
         <span className="text-[10px] font-mono font-bold tracking-wider text-[#a0aab2] uppercase">
           Feed Hopper
@@ -20,11 +19,8 @@ export default function FeedHopper({ hopperCount, reloadHopper }: FeedHopperProp
         </span>
       </div>
 
-      <div 
-        onClick={hopperCount === 0 ? reloadHopper : undefined}
-        className={`relative h-[240px] bg-[#111417] border border-[#21272e] rounded-sm p-4 flex flex-col justify-end shadow-inner overflow-hidden ${
-          hopperCount === 0 ? "cursor-pointer hover:bg-[#15191d] transition-colors" : ""
-        }`}
+      <div
+        className="relative h-[240px] bg-[#111417] border border-[#21272e] rounded-sm p-4 flex flex-col justify-end shadow-inner overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none" />
 
@@ -32,7 +28,7 @@ export default function FeedHopper({ hopperCount, reloadHopper }: FeedHopperProp
           <div className="relative w-full h-[180px] flex items-end justify-center px-4">
             
             {/* The Dynamic 3D Paper Stack Container */}
-            <div 
+            <div
               className="w-full relative transition-all duration-100 ease-out flex flex-col justify-end"
               style={{ height: `${Math.max(5, stackHeight)}%` }}
             >
@@ -64,7 +60,7 @@ export default function FeedHopper({ hopperCount, reloadHopper }: FeedHopperProp
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[#4d5a66] font-mono text-xs font-bold tracking-widest uppercase z-10 select-none">
-            HOPPER EMPTY. CLICK TO RELOAD.
+            HOPPER EMPTY.
           </div>
         )}
       </div>

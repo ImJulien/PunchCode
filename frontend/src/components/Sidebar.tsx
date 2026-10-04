@@ -1,41 +1,97 @@
 "use client";
 
+import { useState } from "react";
+
 interface SidebarProps {
-  onLoadSample: () => void;
   onScrapDeck: () => void;
-  onTearPaper: () => void;
+  onEnterCodeEditor: () => void;
+  onSelectTutorial: () => void;
+  onSelectLevel: (level: 1 | 2 | 3) => void;
+  ambienceVolume: number;
+  onAmbienceVolumeChange: (volume: number) => void;
+  interactionDisabled: boolean;
 }
 
-export default function Sidebar({ onLoadSample, onScrapDeck, onTearPaper }: SidebarProps) {
+export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutorial, onSelectLevel, ambienceVolume, onAmbienceVolumeChange, interactionDisabled }: SidebarProps) {
+  const [levelsOpen, setLevelsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState("TUTORIAL");
+
+  const selectLevel = (level: string, action?: () => void) => {
+    setSelectedLevel(level);
+    setLevelsOpen(false);
+    action?.();
+  };
+
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-16 bg-[#1a1e22] border-r-2 border-[#101316] shadow-[4px_0_15px_rgba(0,0,0,0.6)] flex flex-col justify-between items-center py-6 z-50">
       <div className="flex flex-col items-center gap-6 w-full px-2">
-        <div className="flex flex-col items-center gap-1">
-          <div className="w-11 h-8 bg-[#101316] border border-[#2d3740] rounded-[2px] shadow-inner flex items-center justify-center font-serif font-black text-[#d1d5d8] text-xs tracking-wider select-none">
-            IBM
-          </div>
-          <span className="text-[7.5px] font-mono text-[#58646e] tracking-widest uppercase">029</span>
-        </div>
-
-        <div className="w-8 h-[1px] bg-[#28313a]" />
-
         <div className="flex flex-col items-center gap-4 w-full">
           <div className="group relative flex items-center justify-center w-full">
             <button
-              onClick={onLoadSample}
-              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#c5cfd6] hover:text-[#f5d996] hover:border-[#f5d996]/60 transition-colors"
+              disabled={interactionDisabled}
+              onClick={onEnterCodeEditor}
+              aria-label="Open code editor"
+              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#7fc8ff] hover:text-[#b8e7ff] hover:border-[#7fc8ff]/60 transition-colors"
             >
-              <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="13" rx="1" /><path d="M6 4h14a1 1 0 0 1 1 1v12" /></svg>
+              <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z" /><path d="M15 3v5h5M8 13h8M8 17h6" /></svg>
             </button>
-            <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#f5d996] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              LOAD SAMPLE DECK
+            <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#7fc8ff] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">
+              CODE EDITOR
             </span>
           </div>
 
           <div className="group relative flex items-center justify-center w-full">
             <button
+              disabled={interactionDisabled}
+              onClick={() => setLevelsOpen((open) => !open)}
+              aria-label="Open levels menu"
+              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#f5d996] hover:text-[#ffe7b1] hover:border-[#f5d996]/60 transition-colors"
+            >
+              <span className="font-mono text-[10px] font-black tracking-tight">LVL</span>
+            </button>
+            {!levelsOpen && (
+              <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#f5d996] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                LEVELS
+              </span>
+            )}
+            {levelsOpen && (
+              <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#06080a]/70 p-4" onClick={() => setLevelsOpen(false)}>
+                <div className="w-[min(420px,calc(100vw-2rem))] border-2 border-[#b99558] bg-[#151a1f] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.8)]" onClick={(event) => event.stopPropagation()}>
+                  <div className="mb-3 flex items-center justify-between border-b border-[#35414b] pb-2">
+                    <div className="font-mono text-xs font-black tracking-[0.18em] text-[#f5d996]">SELECT MODE</div>
+                    <button type="button" aria-label="Close levels menu" onClick={() => setLevelsOpen(false)} className="px-2 text-lg text-[#8d9aa4] hover:text-[#f5d996]">×</button>
+                  </div>
+                  <button
+                    disabled={interactionDisabled}
+                    type="button"
+                    onClick={() => selectLevel("TUTORIAL", onSelectTutorial)}
+                    className={`block w-full border border-[#3b4752] px-3 py-2 text-left text-[11px] font-mono font-bold ${selectedLevel === "TUTORIAL" ? "bg-[#2b4754] text-[#b8e7ff]" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
+                  >
+                    TUTORIAL
+                  </button>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                  {[1, 2, 3].map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => selectLevel(`LEVEL ${level}`, () => onSelectLevel(level as 1 | 2 | 3))}
+                    className={`border border-[#3b4752] px-2 py-2 text-center text-[10px] font-mono font-bold ${selectedLevel === `LEVEL ${level}` ? "bg-[#2b4754] text-[#b8e7ff]" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
+                  >
+                    LEVEL {level}
+                  </button>
+                ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="group relative flex items-center justify-center w-full">
+            <button
+              disabled={interactionDisabled}
               onClick={onScrapDeck}
-              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#c5cfd6] hover:text-[#e67575] hover:border-[#e67575]/60 transition-colors"
+              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#e67575] hover:text-[#ff9a9a] hover:border-[#e67575]/60 transition-colors"
             >
               <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" /></svg>
             </button>
@@ -46,15 +102,26 @@ export default function Sidebar({ onLoadSample, onScrapDeck, onTearPaper }: Side
 
           <div className="group relative flex items-center justify-center w-full">
             <button
-              onClick={onTearPaper}
-              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#c5cfd6] hover:text-[#85e3b3] hover:border-[#85e3b3]/60 transition-colors"
+              type="button"
+              disabled={interactionDisabled}
+              onClick={() => setSettingsOpen((open) => !open)}
+              aria-label="Open settings"
+              className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#b8c3cc] hover:text-[#edf3f7] hover:border-[#b8c3cc]/60 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="8" y1="13" x2="16" y2="13" strokeDasharray="2 2" /></svg>
+              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="16" cy="16" r="3" /></svg>
             </button>
-            <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#85e3b3] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">
-              TEAR PRINTER FORM
-            </span>
+            {!settingsOpen && <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#c5cfd6] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">AMBIENCE</span>}
+            {settingsOpen && !interactionDisabled && (
+              <div className="absolute left-14 top-0 ml-2 w-56 border border-[#52606e] bg-[#151a1f] p-3 shadow-2xl">
+                <div className="mb-2 text-[9px] font-mono font-bold tracking-widest text-[#73818b]">AUDIO SETTINGS</div>
+                <label className="block text-[10px] font-mono font-bold text-[#c5cfd6]" htmlFor="ambience-volume">
+                  AMBIENCE {Math.round(ambienceVolume * 100)}%
+                </label>
+                <input id="ambience-volume" type="range" min="0" max="1" step="0.01" value={ambienceVolume} onChange={(event) => onAmbienceVolumeChange(Number(event.target.value))} className="mt-2 w-full accent-[#e4c46d]" />
+              </div>
+            )}
           </div>
+
         </div>
       </div>
 

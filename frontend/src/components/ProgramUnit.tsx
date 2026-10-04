@@ -2,6 +2,12 @@
 
 import ProgramDrumCanvas from "./ProgramDrumCanvas";
 
+const DIAL_NUMBERS = [
+  ...Array.from({ length: 80 }, (_, i) => i + 1),
+  ...Array.from({ length: 80 }, (_, i) => i + 1),
+  ...Array.from({ length: 80 }, (_, i) => i + 1),
+];
+
 interface ProgramUnitProps {
   colIdx: number;
   progControl: boolean;
@@ -9,13 +15,6 @@ interface ProgramUnitProps {
 }
 
 export default function ProgramUnit({ colIdx, progControl, escapementKick }: ProgramUnitProps) {
-  // Continuous loop of 1..80 numbers for the dial
-  const DIAL_NUMBERS = [
-    ...Array.from({ length: 80 }, (_, i) => i + 1),
-    ...Array.from({ length: 80 }, (_, i) => i + 1),
-    ...Array.from({ length: 80 }, (_, i) => i + 1),
-  ];
-
   const getFieldInfo = () => {
     if (colIdx < 5) return { name: "STMT LABEL", code: "COLS 1-5" };
     if (colIdx === 5) return { name: "CONTINUATION", code: "COL 6" };
@@ -32,7 +31,8 @@ export default function ProgramUnit({ colIdx, progControl, escapementKick }: Pro
 
   return (
     <div
-      className={`col-span-3 flex flex-col items-center justify-between h-[300px] bg-[#161a1e] border-2 border-[#101316] rounded-sm p-3 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)] relative transition-transform duration-75 ${
+      id="program-unit"
+      className={`order-2 col-span-3 flex flex-col items-center justify-between h-[300px] bg-[#161a1e] border-2 border-[#101316] rounded-sm p-3 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)] relative transition-transform duration-75 ${
         escapementKick ? "translate-y-[0.5px]" : ""
       }`}
     >
@@ -66,7 +66,7 @@ export default function ProgramUnit({ colIdx, progControl, escapementKick }: Pro
       </div>
 
       <div className="my-1 border border-[#2b353f] p-1 bg-[#0c0f12] rounded-[3px] shadow-inner">
-        <ProgramDrumCanvas colIdx={colIdx} progControl={progControl} />
+        <ProgramDrumCanvas colIdx={colIdx} />
       </div>
 
       <div className="w-full bg-[#0d1012] border border-[#2b353f] px-2.5 py-1 rounded-[2px] flex justify-between items-center shadow-inner my-0.5">

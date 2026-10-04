@@ -4,10 +4,9 @@ import { useEffect, useRef } from "react";
 
 interface ProgramDrumCanvasProps {
   colIdx: number;
-  progControl: boolean;
 }
 
-export default function ProgramDrumCanvas({ colIdx, progControl }: ProgramDrumCanvasProps) {
+export default function ProgramDrumCanvas({ colIdx }: ProgramDrumCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -97,7 +96,7 @@ export default function ProgramDrumCanvas({ colIdx, progControl }: ProgramDrumCa
     ctx.lineTo(centerX + radius, topY + drumHeight - 22);
     ctx.stroke();
 
-  }, [colIdx, progControl]);
+  }, [colIdx]);
 
   return (
     <canvas

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { HOLLERITH_MAP, ROWS } from "../lib/hollerith";
 
 interface PunchCardProps {
@@ -6,7 +7,7 @@ interface PunchCardProps {
   faded?: boolean;
 }
 
-export default function PunchCard({ columns, activeColIdx, faded = false }: PunchCardProps) {
+function PunchCard({ columns, activeColIdx, faded = false }: PunchCardProps) {
   return (
     <div
       className={`relative bg-[#ede2c8] text-[#24211a] p-3 shadow-md border border-[#c2b493] overflow-hidden select-none transition-opacity ${
@@ -28,7 +29,9 @@ export default function PunchCard({ columns, activeColIdx, faded = false }: Punc
       )}
 
       {/* Top Ink Ribbon Printout */}
-      <div className="flex text-[9px] font-mono leading-none mb-1.5 border-b border-[#b8a984] pb-1">
+      <div className={`flex font-mono leading-none mb-1.5 border-b border-[#b8a984] pb-1 ${
+        activeColIdx !== undefined ? "text-[13px]" : "text-[9px]"
+      }`}>
         {columns.map((char, i) => (
           <span
             key={i}
@@ -52,10 +55,8 @@ export default function PunchCard({ columns, activeColIdx, faded = false }: Punc
               return (
                 <div key={i} className="w-[1.25%] h-[10px] flex items-center justify-center shrink-0">
                   {isHole ? (
-                    // Cut rectangular hole showing the dark mechanical card bed underneath
                     <span className="w-[65%] h-[8px] bg-[#3a3732] rounded-[0.5px] block shadow-inner" />
                   ) : (
-                    // Printed digit on card stock
                     <span className="text-[6.5px] text-[#8c8065] font-mono select-none">
                       {row === 12 || row === 11 ? "" : row}
                     </span>
@@ -77,3 +78,5 @@ export default function PunchCard({ columns, activeColIdx, faded = false }: Punc
     </div>
   );
 }
+
+export default memo(PunchCard);
