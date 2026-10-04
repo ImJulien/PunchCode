@@ -116,7 +116,7 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
                     disabled={interactionDisabled}
                     type="button"
                     onClick={() => selectLevel("TUTORIAL", onSelectTutorial)}
-                    className={`block w-full border border-[#3b4752] px-3 py-2 text-left text-[11px] font-mono font-bold ${selectedLevel === "TUTORIAL" ? "bg-[#2b4754] text-[#b8e7ff]" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
+                    className={`block w-full border border-[#3b4752] px-3 py-2 text-left text-[11px] font-mono font-bold transition-colors ${selectedLevel === "TUTORIAL" ? "bg-[#2b4754] text-[#b8e7ff] hover:bg-[#3a6172] hover:text-white" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
                   >
                     TUTORIAL
                   </button>
@@ -129,7 +129,7 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
                               key={level.id}
                               type="button"
                               onClick={() => selectLevel(`LEVEL ${level.id}: ${level.title}`, () => onSelectLevel(level.id))}
-                              className={`flex w-full items-center gap-2 border border-[#3b4752] px-2 py-2 text-left text-[clamp(9px,1.1vw,11px)] font-mono font-bold sm:px-3 ${selectedLevel === `LEVEL ${level.id}: ${level.title}` ? "bg-[#2b4754] text-[#b8e7ff]" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
+                              className={`flex w-full items-center gap-2 border border-[#3b4752] px-2 py-2 text-left text-[clamp(9px,1.1vw,11px)] font-mono font-bold transition-colors sm:px-3 ${selectedLevel === `LEVEL ${level.id}: ${level.title}` ? "bg-[#2b4754] text-[#b8e7ff] hover:bg-[#3a6172] hover:text-white" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
                             >
                               <span className="min-w-0 flex-1">{level.id} - {level.title}</span>
                               <span className={`ml-auto shrink-0 whitespace-nowrap text-[9px] ${difficulty === "EASY" ? "text-green-400" : difficulty === "MEDIUM" ? "text-yellow-300" : "text-red-400"}`}>

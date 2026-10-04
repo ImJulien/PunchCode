@@ -1058,7 +1058,7 @@ export default function Home() {
 
         <div id="line-printer" className={`w-full flex-none h-[clamp(145px,22vh,220px)] shadow-[0_20px_40px_rgba(0,0,0,0.8)] rounded overflow-hidden border-4 border-[#252c33] ${compilerFullscreen ? "compiler-printer-fullscreen" : ""}`}>
           <div className="bg-[#1f252b] px-4 py-2 border-b border-[#2b333c] flex flex-wrap gap-2 justify-between items-center text-[10px] font-mono text-[#748494] tracking-wider uppercase">
-            <span className="font-bold text-[#b5c1cc]">IBM 1403 LINE PRINTER • CONTINUOUS STATIONERY FORM</span>
+            <span className="font-bold text-[#b5c1cc]">IBM 1403 LINE PRINTER</span>
             <div className="flex items-center gap-3">
               <span className="hidden sm:inline">132 COLUMNS • 1100 LINES/MIN</span>
               <button
