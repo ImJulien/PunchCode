@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+
+/* Reset default margins and prevent horizontal page shifts */
+html, body {
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
