@@ -7,6 +7,15 @@ body {
   width: 100%;
   min-height: 100%;
   overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 body {
@@ -201,9 +210,10 @@ body {
 }
 
 .workstation-content {
-  --workstation-scale: max(0.65, calc((100vw - 5rem) / 1152px));
+  --workstation-scale: max(0.65, calc((100vw - 8rem) / 1152px));
   width: 1152px;
   max-width: none;
+  margin-inline: 0.75rem;
   transform-origin: top center;
   transform: scale(var(--workstation-scale));
 }
@@ -272,6 +282,22 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
+}
+
+#card-stacker > div:nth-child(2),
+#output-code {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-color: transparent transparent;
+}
+
+#card-stacker > div:nth-child(2)::-webkit-scrollbar,
+#output-code::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .flippy-guide {
@@ -405,7 +431,7 @@ body {
 
 @media (max-width: 640px) {
   .workstation-content {
-    --workstation-scale: clamp(0.4, calc((100vw - 5rem) / 1152px), 1.3);
+    --workstation-scale: clamp(0.4, calc((100vw - 8rem) / 1152px), 1.3);
   }
 
   .flippy-guide {
