@@ -50,15 +50,11 @@ def apply_kernel_limits():
         return
     # Max 2 seconds of pure CPU time
     resource.setrlimit(resource.RLIMIT_CPU, (2, 2))
-    # Max 64 MB of virtual address space
-    resource.setrlimit(resource.RLIMIT_AS, (64 * 1024 * 1024, 64 * 1024 * 1024))
+    # Max 512 MB of virtual address space for user binaries
+    resource.setrlimit(resource.RLIMIT_AS, (512 * 1024 * 1024, 512 * 1024 * 1024))
     # Max 1 MB file creation size (prevents disk-filling attacks)
     resource.setrlimit(resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024))
-    # Max child processes / threads (prevents fork bombs)
-    try:
-        resource.setrlimit(resource.RLIMIT_NPROC, (16, 16))
-    except (ValueError, OSError):
-        pass
+    # Note: RLIMIT_NPROC is omitted to avoid blocking user process spawning on Linux
 
 @app.post("/api/run", response_model=ExecuteResponse)
 def run_fortran_deck(req: ExecuteRequest):
@@ -68,7 +64,7 @@ def run_fortran_deck(req: ExecuteRequest):
     for pattern in FORBIDDEN_PATTERNS:
         if re.search(pattern, full_source, re.IGNORECASE):
             return ExecuteResponse(
-                output=f"SECURITY VIOLATION: Statement matches restricted keyword rule: '{pattern.strip(r'\b')}'. Direct host access prohibited.",
+                output=f"SECURITY VIOLATION: Statement matches restricted keyword rule: '{pattern.strip(r'\\b')}'. Direct host access prohibited.",
                 is_error=True
             )
 
@@ -81,13 +77,12 @@ def run_fortran_deck(req: ExecuteRequest):
         f.write(full_source)
 
     try:
-        # 2. Compile safely
+        # 2. Compile safely (no kernel limits applied to gfortran compiler driver)
         compile_res = subprocess.run(
             ["gfortran", "-O2", src_file, "-o", bin_file],
             capture_output=True,
             text=True,
-            timeout=8,
-            preexec_fn=apply_kernel_limits if HAS_RESOURCE else None
+            timeout=8
         )
 
         if compile_res.returncode != 0:
