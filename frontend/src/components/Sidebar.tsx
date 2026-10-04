@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { LEVELS, LevelId } from "../lib/levels";
 
 interface SidebarProps {
   onScrapDeck: () => void;
   onEnterCodeEditor: () => void;
   onSelectTutorial: () => void;
-  onSelectLevel: (level: 1 | 2 | 3) => void;
+  onSelectLevel: (level: LevelId) => void;
   ambienceVolume: number;
   onAmbienceVolumeChange: (volume: number) => void;
   interactionDisabled: boolean;
@@ -70,17 +71,37 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
                   >
                     TUTORIAL
                   </button>
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                  {[1, 2, 3].map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => selectLevel(`LEVEL ${level}`, () => onSelectLevel(level as 1 | 2 | 3))}
-                    className={`border border-[#3b4752] px-2 py-2 text-center text-[10px] font-mono font-bold ${selectedLevel === `LEVEL ${level}` ? "bg-[#2b4754] text-[#b8e7ff]" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
-                  >
-                    LEVEL {level}
-                  </button>
-                ))}
+                  <div className="mt-2 max-h-[min(70vh,520px)] space-y-3 overflow-y-auto pr-1">
+                    {(["EASY", "MEDIUM", "HARD"] as const).map((difficulty) => (
+                      <section key={difficulty}>
+                        <div className="space-y-1">
+                          {LEVELS.filter((level) => level.difficulty === difficulty).map((level) => (
+                            <button
+                              key={level.id}
+                              type="button"
+                              onClick={() => selectLevel(`LEVEL ${level.id}: ${level.title}`, () => onSelectLevel(level.id))}
+                              className={`block w-full border border-[#3b4752] px-3 py-2 text-left text-[10px] font-mono font-bold ${selectedLevel === `LEVEL ${level.id}: ${level.title}` ? "bg-[#2b4754] text-[#b8e7ff]" : "text-[#c5cfd6] hover:bg-[#2b3640]"}`}
+                            >
+                              {level.id} - {level.title}
+                              <span className={`ml-2 text-[9px] ${difficulty === "EASY" ? "text-green-400" : difficulty === "MEDIUM" ? "text-yellow-300" : "text-red-400"}`}>
+                                {difficulty}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                    {LEVELS.filter((level) => level.isImpossible).map((level) => (
+                      <button
+                        key={level.id}
+                        type="button"
+                        onClick={() => selectLevel(`LEVEL ${level.id}: ${level.title}`, () => onSelectLevel(level.id))}
+                        className={`block w-full border border-purple-500/60 px-3 py-2 text-left text-[10px] font-mono font-bold ${selectedLevel === `LEVEL ${level.id}: ${level.title}` ? "bg-purple-950/70 text-purple-200" : "text-[#c5cfd6] hover:bg-purple-950/40"}`}
+                      >
+                        {level.id} - {level.title}
+                        <span className="ml-2 text-purple-400">?</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>

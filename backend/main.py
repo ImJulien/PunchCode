@@ -75,7 +75,7 @@ def run_fortran_deck(req: ExecuteRequest):
     job_id = str(uuid.uuid4())
     temp_dir = tempfile.gettempdir()
     src_file = os.path.join(temp_dir, f"{job_id}.f90")
-    bin_file = os.path.join(temp_dir, job_id)
+    bin_file = os.path.join(temp_dir, f"{job_id}.exe" if os.name == "nt" else job_id)
 
     with open(src_file, "w") as f:
         f.write(full_source)
@@ -94,7 +94,13 @@ def run_fortran_deck(req: ExecuteRequest):
             return ExecuteResponse(output=compile_res.stderr.strip(), is_error=True)
 
         # 3. Execute with strict sandboxing and minimal environment
-        clean_env = {"PATH": "/usr/bin:/bin"}
+        if os.name == "nt":
+            clean_env = {
+                "PATH": os.environ.get("PATH", ""),
+                "SystemRoot": os.environ.get("SystemRoot", r"C:\Windows"),
+            }
+        else:
+            clean_env = {"PATH": "/usr/bin:/bin"}
         run_res = subprocess.run(
             [bin_file],
             input=req.stdin,

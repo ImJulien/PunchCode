@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { LevelId } from "../lib/levels";
 
 interface TutorialStep {
   title: string;
@@ -94,7 +95,7 @@ interface FlippyTutorialProps {
   hasOutput: boolean;
   onDismiss: () => void;
   onScrapCard: () => void;
-  activeLevel: 1 | 2 | 3 | null;
+  activeLevel: LevelId | null;
   challengeCards: string[];
   challengeTitle: string;
   challengePrompt: string | null;

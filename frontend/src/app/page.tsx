@@ -24,7 +24,7 @@ import Sidebar from "../components/Sidebar";
 import ProgramUnit from "../components/ProgramUnit";
 import FeedHopper from "../components/FeedHopper";
 import FlippyTutorial from "../components/FlippyTutorial";
-import { LEVELS } from "../lib/levels";
+import { getLevel, LevelId } from "../lib/levels";
 
 const TUTORIAL_DECK = [
   "      WRITE(6, 10)",
@@ -58,7 +58,7 @@ export default function Home() {
   const [scrapRevision, setScrapRevision] = useState(0);
   const [tutorialVisible, setTutorialVisible] = useState(true);
   const [helloWorldComplete, setHelloWorldComplete] = useState(false);
-  const [activeLevel, setActiveLevel] = useState<1 | 2 | 3 | null>(null);
+  const [activeLevel, setActiveLevel] = useState<LevelId | null>(null);
   const [ambienceVolume, setAmbienceVolumeState] = useState(0.2);
   const [objectivePosition, setObjectivePosition] = useState<{ left: number; top: number } | null>(null);
   const objectiveDragRef = useRef<{ offsetX: number; offsetY: number; width: number; height: number } | null>(null);
@@ -212,13 +212,11 @@ export default function Home() {
     setHopperCount((prev) => Math.max(0, prev - 1));
 
     const finalCard = [...currentColsRef.current];
-    const challengeCards = activeLevel ? LEVELS[activeLevel - 1].cards : TUTORIAL_DECK;
+    const challengeCards = activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK;
     const expectedCard = challengeCards[tutorialCardIndex];
-    const releaseIsCorrect = activeLevel
-      ? Boolean(expectedCard)
-      : expectedCard
-        ? finalCard.slice(0, 72).join("").trimEnd() === expectedCard
-        : null;
+    const releaseIsCorrect = expectedCard
+      ? finalCard.slice(0, 72).join("").trimEnd() === expectedCard
+      : null;
     setLastReleaseCorrect(releaseIsCorrect);
     setReleaseRevision((revision) => revision + 1);
     if (releaseIsCorrect) {
@@ -386,7 +384,7 @@ export default function Home() {
     }
 
     const cardsPayload = fullDeck.map((c) => c.join(""));
-    const challengeCards = activeLevel ? LEVELS[activeLevel - 1].cards : TUTORIAL_DECK;
+    const challengeCards = activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK;
     const isChallengeDeck = activeLevel
       ? cardsPayload.length === challengeCards.length
       : cardsPayload.length === TUTORIAL_DECK.length &&
@@ -412,7 +410,7 @@ export default function Home() {
       const outputLines = (data.output || "").split("\n");
       const outputText = outputLines.join("\n");
       const outputMatchesChallenge = activeLevel
-        ? LEVELS[activeLevel - 1].acceptedOutput.test(outputText)
+        ? getLevel(activeLevel).acceptedOutput.test(outputText)
         : outputText.toUpperCase().includes("HELLO WORLD");
       if (isChallengeDeck && outputMatchesChallenge) setHelloWorldComplete(true);
 
@@ -451,9 +449,9 @@ export default function Home() {
           hasCompiled={hasCompiled}
           hasOutput={printerOutput.includes("END OF BATCH OUTPUT")}
           activeLevel={activeLevel}
-          challengeCards={activeLevel ? LEVELS[activeLevel - 1].cards : TUTORIAL_DECK}
-          challengeTitle={activeLevel ? LEVELS[activeLevel - 1].title : "Hello World"}
-          challengePrompt={activeLevel ? LEVELS[activeLevel - 1].prompt : null}
+          challengeCards={activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK}
+          challengeTitle={activeLevel ? getLevel(activeLevel).title : "Hello World"}
+          challengePrompt={activeLevel ? getLevel(activeLevel).prompt : null}
           onDismiss={() => setTutorialVisible(false)}
           onScrapCard={() => {
             playPaperEnterSound();
@@ -508,10 +506,10 @@ export default function Home() {
             onPointerDown={startObjectiveDrag}
             title="Drag to move"
           >
-            LEVEL {activeLevel} OBJECTIVE
+            LEVEL {activeLevel}: {getLevel(activeLevel).title}
           </div>
           <div className="p-3 text-[11px] leading-relaxed text-[#d1d8dc]">
-            {LEVELS[activeLevel - 1].prompt}
+            {getLevel(activeLevel).prompt}
           </div>
         </aside>
       )}
