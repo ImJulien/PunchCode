@@ -15,6 +15,7 @@ const SOUND_FILES = [
   "paper-deck.wav",
   "hover.wav",
   "button.wav",
+  "error.wav",
   "compile.mp3",
   "music.mp3",
 ];
@@ -112,14 +113,19 @@ export function playPaperDeckSound() {
 export function playHoverSound(target: EventTarget | null) {
   if (target === lastHoveredButton) return;
   lastHoveredButton = target;
-  playFile("hover.wav", 0.35);
+  const playbackRate = 0.94 + Math.random() * 0.12;
+  playFile("hover.wav", 1, playbackRate);
 }
 
 export function playButtonSound() {
   const playbackRate = 0.96 + Math.random() * 0.08;
-  playFile("button.wav", 0.45, playbackRate);
+  playFile("button.wav", 0.2, playbackRate);
 }
 
 export function playCompileSound() {
   playFile("compile.mp3", 0.7);
+}
+
+export function playErrorSound() {
+  playFile("error.wav", 0.75);
 }

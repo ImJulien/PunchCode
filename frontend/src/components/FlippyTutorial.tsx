@@ -124,7 +124,7 @@ export default function FlippyTutorial({
   const [tourStep, setTourStep] = useState(0);
   const [frame, setFrame] = useState(0);
   const [spotlight, setSpotlight] = useState<DOMRect | null>(null);
-  const [successVisible, setSuccessVisible] = useState(false);
+  const successVisible = Boolean(completed && activeLevel);
   const wrongCardNeedsScrap = mode === "cards" && lastReleaseCorrect === false && scrapRevision < releaseRevision;
   const cardInstructions = activeLevel
     ? challengeCards.map((card, index) => {
@@ -144,16 +144,6 @@ export default function FlippyTutorial({
   const displayMode: TutorialMode =
     effectiveMode === "cards" && tutorialCardIndex >= cardInstructions.length ? "compile" :
     effectiveMode === "compile" && hasCompiled ? "output" : effectiveMode;
-
-  useEffect(() => {
-    if (!completed || !activeLevel || successVisible) return;
-    const animationTimer = window.setTimeout(() => setSuccessVisible(true), 0);
-    const timer = window.setTimeout(onLevelComplete, 1900);
-    return () => {
-      window.clearTimeout(animationTimer);
-      window.clearTimeout(timer);
-    };
-  }, [activeLevel, completed, onLevelComplete, successVisible]);
 
   useEffect(() => {
     if (!successVisible) return;

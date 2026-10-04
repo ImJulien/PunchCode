@@ -16,11 +16,11 @@ import {
   preloadAudio,
   setAmbienceVolume,
   playCompileSound,
+  playErrorSound,
 } from "../lib/audio";
 import { HOLLERITH_MAP, ROWS } from "../lib/hollerith";
 import PunchCard from "../components/PunchCard";
 
-// Import newly separated components
 import Sidebar from "../components/Sidebar";
 import ProgramUnit from "../components/ProgramUnit";
 import FeedHopper from "../components/FeedHopper";
@@ -62,7 +62,6 @@ type CheatSheetLanguage = keyof typeof CHEAT_SHEET;
 export default function Home() {
   const [currentCols, setCurrentCols] = useState<string[]>(Array(80).fill(" "));
   const [colIdx, setColIdx] = useState<number>(0);
-  const [readCard, setReadCard] = useState<string[] | null>(null);
   const [stacker, setStacker] = useState<string[][]>([]);
   const [inspectingIdx, setInspectingIdx] = useState<number | null>(null);
 
@@ -77,6 +76,9 @@ export default function Home() {
     "LOAD CARD DECK INTO HOPPER AND PRESS [FEED DECK TO RUNNER]"
   ]);
   const [isRunning, setIsRunning] = useState(false);
+  const [compilerFullscreen, setCompilerFullscreen] = useState(false);
+  const [compilerErrorShake, setCompilerErrorShake] = useState(false);
+  const [successFeedback, setSuccessFeedback] = useState(false);
   const [hasCompiled, setHasCompiled] = useState(false);
   const [tutorialCardIndex, setTutorialCardIndex] = useState(0);
   const [lastReleaseCorrect, setLastReleaseCorrect] = useState<boolean | null>(null);
@@ -90,23 +92,53 @@ export default function Home() {
   const [activeLevel, setActiveLevel] = useState<LevelId | null>(null);
   const [ambienceVolume, setAmbienceVolumeState] = useState(0.2);
   const [objectivePosition, setObjectivePosition] = useState<{ left: number; top: number } | null>(null);
+  const [objectiveHidden, setObjectiveHidden] = useState(false);
   const [showLevelHint, setShowLevelHint] = useState(false);
   const [cheatSheetOpen, setCheatSheetOpen] = useState(false);
   const [cheatSheetLanguage, setCheatSheetLanguage] = useState<CheatSheetLanguage>("FORTRAN");
   const objectiveDragRef = useRef<{ offsetX: number; offsetY: number; width: number; height: number } | null>(null);
+  const stackerScrollRef = useRef<HTMLDivElement>(null);
+  const newestCardRef = useRef<HTMLDivElement>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   const colIdxRef = useRef(colIdx);
   const currentColsRef = useRef(currentCols);
-  const readCardRef = useRef(readCard);
+  const readCardRef = useRef<string[] | null>(null);
   const progControlRef = useRef(progControl);
   const stackerLengthRef = useRef(stacker.length);
   const hopperCountRef = useRef(hopperCount);
+  const compilerErrorShakeTimerRef = useRef<number | null>(null);
+  const successFeedbackTimerRef = useRef<number | null>(null);
+
+  const triggerCompilerError = useCallback(() => {
+    playErrorSound();
+    setCompilerErrorShake(false);
+    if (compilerErrorShakeTimerRef.current !== null) {
+      window.clearTimeout(compilerErrorShakeTimerRef.current);
+    }
+    window.requestAnimationFrame(() => setCompilerErrorShake(true));
+    compilerErrorShakeTimerRef.current = window.setTimeout(() => {
+      setCompilerErrorShake(false);
+      compilerErrorShakeTimerRef.current = null;
+    }, 360);
+  }, []);
+
+  const triggerSuccessFeedback = useCallback(() => {
+    setSuccessFeedback(false);
+    if (successFeedbackTimerRef.current !== null) {
+      window.clearTimeout(successFeedbackTimerRef.current);
+    }
+    window.requestAnimationFrame(() => setSuccessFeedback(true));
+    successFeedbackTimerRef.current = window.setTimeout(() => {
+      setSuccessFeedback(false);
+      successFeedbackTimerRef.current = null;
+    }, 480);
+  }, []);
 
   const resetDeck = useCallback(() => {
     setStacker([]);
-    setReadCard(null);
+    readCardRef.current = null;
     setInspectingIdx(null);
     setCurrentCols(Array(80).fill(" "));
     setColIdx(0);
@@ -128,11 +160,10 @@ export default function Home() {
   useEffect(() => {
     colIdxRef.current = colIdx;
     currentColsRef.current = currentCols;
-    readCardRef.current = readCard;
     progControlRef.current = progControl;
     stackerLengthRef.current = stacker.length;
     hopperCountRef.current = hopperCount;
-  }, [colIdx, currentCols, readCard, progControl, stacker.length, hopperCount]);
+  }, [colIdx, currentCols, progControl, stacker.length, hopperCount]);
 
   useEffect(() => {
     const handleButtonHover = (event: PointerEvent) => {
@@ -242,12 +273,34 @@ export default function Home() {
   useEffect(() => {
     containerRef.current?.focus();
     const handleWindowBlur = () => stopDup();
+    const handleFullscreenKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCompilerFullscreen(false);
+    };
     window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("keydown", handleFullscreenKey);
     return () => {
       stopDup();
+      if (compilerErrorShakeTimerRef.current !== null) {
+        window.clearTimeout(compilerErrorShakeTimerRef.current);
+      }
+      if (successFeedbackTimerRef.current !== null) {
+        window.clearTimeout(successFeedbackTimerRef.current);
+      }
       window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("keydown", handleFullscreenKey);
     };
   }, [stopDup]);
+
+  useEffect(() => {
+    if (stacker.length === 0) return;
+    window.requestAnimationFrame(() => {
+      const stackerElement = stackerScrollRef.current;
+      if (stackerElement) {
+        stackerElement.scrollTo({ top: stackerElement.scrollHeight, behavior: "smooth" });
+      }
+      newestCardRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  }, [stacker.length]);
 
   // LIVE HOPPER LOGIC
   const releaseCard = useCallback(() => {
@@ -299,7 +352,7 @@ export default function Home() {
 
     if (releaseIsCorrect === false) {
       setStacker((prev) => [...prev, finalCard]);
-      setReadCard(finalCard);
+      readCardRef.current = finalCard;
       setInspectingIdx(null);
       const emptyCard = Array(80).fill(" ");
       currentColsRef.current = emptyCard;
@@ -310,7 +363,7 @@ export default function Home() {
     }
 
     setStacker((prev) => [...prev, finalCard]);
-    setReadCard(finalCard);
+    readCardRef.current = finalCard;
     const emptyCard = Array(80).fill(" ");
     currentColsRef.current = emptyCard;
     colIdxRef.current = 0;
@@ -450,7 +503,7 @@ export default function Home() {
     playLockSound();
     playPaperDeckSound();
     setStacker([]);
-    setReadCard(null);
+    readCardRef.current = null;
     setCurrentCols(Array(80).fill(" "));
     setColIdx(0);
     setInspectingIdx(null);
@@ -492,7 +545,7 @@ export default function Home() {
         return;
       }
       setStacker(cards);
-      setReadCard(cards[cards.length - 1] ?? null);
+      readCardRef.current = cards[cards.length - 1] ?? null;
       setCurrentCols(Array(80).fill(" "));
       setColIdx(0);
       setInspectingIdx(null);
@@ -506,7 +559,6 @@ export default function Home() {
   };
 
   const handleExecuteDeck = async () => {
-    playCompileSound();
     playReaderSound();
     setIsRunning(true);
 
@@ -516,6 +568,7 @@ export default function Home() {
 
     if (fullDeck.length === 0) {
       playLockSound();
+      triggerCompilerError();
       setPrinterOutput([
         "*** JOB REJECTED ***",
         "CARD HOPPER & STACKER EMPTY. NO SOURCE DECK TO READ."
@@ -545,20 +598,30 @@ export default function Home() {
       const data = await res.json();
       playPrinterSound();
       setHasCompiled(true);
+      if (data.is_error) {
+        triggerCompilerError();
+      } else {
+        playCompileSound();
+      }
 
       const outputLines = (data.output || "").split("\n");
-      const outputText = outputLines.join("\n");
+      const outputText = outputLines.map((line: string) => line.trimEnd()).join("\n").trim();
       const outputMatchesChallenge = activeLevel
         ? getLevel(activeLevel).acceptedOutput.test(outputText)
         : outputText.toUpperCase().includes("HELLO WORLD");
       const outputIsSuccessful = !data.is_error && outputMatchesChallenge;
-      if ((activeLevel ? outputIsSuccessful : isTutorialDeck && outputIsSuccessful)) {
+      const levelAccepted = Boolean(activeLevel && outputIsSuccessful);
+      const tutorialAccepted = Boolean(!activeLevel && isTutorialDeck && outputIsSuccessful);
+      if (levelAccepted || tutorialAccepted) {
+        triggerSuccessFeedback();
         setHelloWorldComplete(true);
       }
 
       setPrinterOutput([
         `BATCH JOB EXECUTION REPORT • ${fullDeck.length} CARDS PROCESSED`,
-        data.is_error
+        levelAccepted
+          ? "STATUS: LEVEL OUTPUT ACCEPTED"
+          : data.is_error
           ? "STATUS: COMPILATION / EXECUTION ERROR"
           : "STATUS: EXECUTION SUCCESSFUL (RC=0000)",
         "==================================================",
@@ -568,6 +631,7 @@ export default function Home() {
       ]);
     } catch {
       playLockSound();
+      triggerCompilerError();
       setPrinterOutput([
         "*** HARDWARE / LINK FAULT ***",
         "UNABLE TO CONTACT PYTHON RUNNER AT HTTP://LOCALHOST:8000.",
@@ -595,6 +659,7 @@ export default function Home() {
           challengeTitle={activeLevel ? getLevel(activeLevel).title : "Hello World"}
           challengePrompt={activeLevel ? getLevel(activeLevel).prompt : ""}
           onLevelComplete={() => {
+            setHelloWorldComplete(false);
             setTutorialVisible(false);
             setOpenLevelsRequest((request) => request + 1);
           }}
@@ -613,6 +678,20 @@ export default function Home() {
           }}
         />
       )}
+      {activeLevel && helloWorldComplete && !tutorialVisible && (
+        <div className="pointer-events-auto fixed inset-0 z-[70] flex items-center justify-center bg-[#07100b]/75 p-6 backdrop-blur-[2px]">
+          <div className="success-burst w-[min(420px,calc(100vw-2rem))] border-2 border-[#9be2b0] bg-[#14251a] p-6 text-center font-mono shadow-[0_0_0_1px_rgba(155,226,176,0.25),0_0_35px_rgba(80,220,120,0.35)]">
+            <div className="text-xl font-black tracking-[0.16em] text-[#d9ffe3]">{getLevel(activeLevel).title} accepted</div>
+            <button
+              type="button"
+              onClick={() => setHelloWorldComplete(false)}
+              className="mt-5 border border-[#9be2b0] bg-[#28543a] px-4 py-2 text-[10px] font-bold tracking-wider text-[#d9ffe3] hover:bg-[#34704d]"
+            >
+              CLOSE
+            </button>
+          </div>
+        </div>
+      )}
       <Sidebar 
         onScrapDeck={handleScrapDeck} 
         onEnterCodeEditor={openCodeEditor}
@@ -626,6 +705,7 @@ export default function Home() {
         onOpenCheatSheet={() => setCheatSheetOpen(true)}
         onSelectTutorial={() => {
           setActiveLevel(null);
+          setObjectiveHidden(false);
           setShowLevelHint(false);
           setTutorialCardIndex(0);
           setHelloWorldComplete(false);
@@ -635,6 +715,7 @@ export default function Home() {
         }}
         onSelectLevel={(level) => {
           setActiveLevel(level);
+          setObjectiveHidden(false);
           setShowLevelHint(false);
           setTutorialCardIndex(0);
           setHelloWorldComplete(false);
@@ -693,11 +774,9 @@ export default function Home() {
         </aside>
       )}
 
-      {activeLevel && (
+      {activeLevel && !objectiveHidden && (
         <aside
-          className={`fixed z-[60] flex min-h-[96px] min-w-[240px] w-[min(360px,calc(100vw-6rem))] resize flex-col overflow-hidden border border-[#8d7546] bg-[#1b2126]/95 font-mono shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm transition-[height] duration-200 ${
-            showLevelHint ? "h-[min(220px,calc(100dvh-2rem))]" : "h-[min(120px,calc(100dvh-2rem))]"
-          }`}
+          className="fixed z-[60] flex min-h-[96px] min-w-[240px] w-[min(360px,calc(100vw-6rem))] resize flex-col overflow-visible border border-[#8d7546] bg-[#1b2126]/95 font-mono shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-sm"
           style={objectivePosition ? { left: objectivePosition.left, top: objectivePosition.top } : { right: "1rem", bottom: "1rem" }}
           aria-label="Level objective"
         >
@@ -707,8 +786,17 @@ export default function Home() {
             title="Drag to move"
           >
             LEVEL {activeLevel}: {getLevel(activeLevel).title}
+            <button
+              type="button"
+              aria-label="Hide level objective"
+              onClick={() => setObjectiveHidden(true)}
+              onPointerDown={(event) => event.stopPropagation()}
+              className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center border border-[#6f603f] p-0 text-[10px] leading-none text-[#cdb56f] hover:border-[#e4c46d] hover:text-[#f5d996]"
+            >
+              ×
+            </button>
           </div>
-          <div className="min-h-0 overflow-y-auto p-3 text-[11px] leading-relaxed text-[#d1d8dc] break-words">
+          <div className="p-3 text-[11px] leading-relaxed text-[#d1d8dc] break-words">
             <p>{getLevel(activeLevel).prompt}</p>
             {showLevelHint && (
               <p className="mt-2 border-t border-[#594d37] pt-2 text-[#e4c46d]">
@@ -728,6 +816,15 @@ export default function Home() {
           </div>
         </aside>
       )}
+      {activeLevel && objectiveHidden && (
+        <button
+          type="button"
+          onClick={() => setObjectiveHidden(false)}
+          className="fixed bottom-4 right-4 z-[60] border border-[#8d7546] bg-[#1b2126]/95 px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-[#e4c46d] shadow-[0_8px_24px_rgba(0,0,0,0.55)] hover:bg-[#343b40]"
+        >
+          Show objective
+        </button>
+      )}
 
       <main
         ref={containerRef}
@@ -738,10 +835,10 @@ export default function Home() {
           initAudio();
           containerRef.current?.focus();
         }}
-        className="flex-1 min-w-0 min-h-0 ml-16 p-3 lg:p-5 flex flex-col items-center gap-3 font-sans outline-none select-none relative z-10"
+        className={`flex-1 min-w-0 min-h-0 ml-16 p-3 lg:p-5 flex flex-col items-center gap-3 font-sans outline-none select-none relative z-10 ${compilerErrorShake ? "compiler-error-shake" : successFeedback ? "compiler-success-feedback" : ""}`}
       >
-        <div id="ibm-machine" className="workstation-content w-full max-w-6xl flex-none flex flex-col gap-3">
-        <div className="no-scrollbar w-full flex-none overflow-hidden bg-[#37414b] border-[10px] border-[#252c33] rounded-lg shadow-[0_30px_60px_rgba(0,0,0,0.8),inset_0_2px_2px_rgba(255,255,255,0.05)] flex flex-col relative">
+        <div id="ibm-machine" className={`workstation-content w-full max-w-6xl flex-none flex flex-col gap-3 ${compilerFullscreen ? "compiler-fullscreen" : ""}`}>
+        <div className={`no-scrollbar w-full flex-none overflow-hidden bg-[#37414b] border-[10px] border-[#252c33] rounded-lg shadow-[0_30px_60px_rgba(0,0,0,0.8),inset_0_2px_2px_rgba(255,255,255,0.05)] flex flex-col relative ${compilerFullscreen ? "hidden" : ""}`}>
           
           <div id="machine-header" className="bg-[#1e242a] border-b-2 border-[#15191d] px-6 py-3.5 flex justify-between items-center text-[#e1e4e6] shadow-[inset_0_-2px_10px_rgba(0,0,0,0.5)]">
             <div className="flex items-center gap-4">
@@ -773,14 +870,14 @@ export default function Home() {
             <div id="card-stacker" className="order-3 col-span-5 bg-[#1c2126] border-2 border-[#121518] rounded-sm shadow-[inset_0_4px_12px_rgba(0,0,0,0.9)] flex flex-col h-[300px]">
               <div className="bg-[#171b1f] px-4 py-2 border-b border-[#252c33] flex justify-between items-center shadow-md z-10">
                 <span className="text-[10px] font-mono font-bold tracking-wider text-[#a0aab2] uppercase">
-                  Card Stacker (Completed Deck)
+                  Card Stacker
                 </span>
                 <span className="text-[9px] font-mono font-bold text-[#718494] bg-[#0c0e10] px-2 py-0.5 rounded border border-[#232930]">
                   {stacker.length} CARDS
                 </span>
               </div>
 
-              <div className="no-scrollbar flex-1 overflow-y-auto p-4 bg-[#1e2329] relative">
+              <div ref={stackerScrollRef} className="no-scrollbar flex-1 overflow-y-auto p-4 bg-[#1e2329] relative">
                 {stacker.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-[#4d5a66] text-[11px] font-mono italic">
                     Deck empty. Press ENTER to release punched cards.
@@ -795,6 +892,7 @@ export default function Home() {
                       return (
                         <div
                           key={idx}
+                          ref={isLast ? newestCardRef : undefined}
                           onClick={() => {
                             const isGuidedLevel = tutorialVisible && activeLevel !== null;
                             const isRejectedCard = idx === stacker.length - 1 && pendingScrap;
@@ -934,7 +1032,7 @@ export default function Home() {
             ) : (
               <>
                 <div className="flex justify-between text-[9.5px] font-mono font-bold tracking-widest text-[#73828f] uppercase px-2 py-1">
-                  <span>PUNCH STATION (PUNCH DIES)</span>
+                  <span>IBM 029 CARD PUNCH</span>
                   <span>ACTIVE CARD • COLUMN {Math.min(colIdx + 1, 80)}</span>
                 </div>
 
@@ -958,11 +1056,18 @@ export default function Home() {
           </div>
         </div>
 
-        <div id="line-printer" className="w-full flex-none h-[clamp(145px,22vh,220px)] shadow-[0_20px_40px_rgba(0,0,0,0.8)] rounded overflow-hidden border-4 border-[#252c33]">
+        <div id="line-printer" className={`w-full flex-none h-[clamp(145px,22vh,220px)] shadow-[0_20px_40px_rgba(0,0,0,0.8)] rounded overflow-hidden border-4 border-[#252c33] ${compilerFullscreen ? "compiler-printer-fullscreen" : ""}`}>
           <div className="bg-[#1f252b] px-4 py-2 border-b border-[#2b333c] flex flex-wrap gap-2 justify-between items-center text-[10px] font-mono text-[#748494] tracking-wider uppercase">
             <span className="font-bold text-[#b5c1cc]">IBM 1403 LINE PRINTER • CONTINUOUS STATIONERY FORM</span>
             <div className="flex items-center gap-3">
               <span className="hidden sm:inline">132 COLUMNS • 1100 LINES/MIN</span>
+              <button
+                type="button"
+                onClick={() => setCompilerFullscreen((fullscreen) => !fullscreen)}
+                className="border border-[#718290] px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#b5c1cc] hover:border-[#d1d5d8] hover:text-white"
+              >
+                {compilerFullscreen ? "MINIMIZE" : "FULLSCREEN"}
+              </button>
               <button
                 id="compile-button"
                 onClick={handleExecuteDeck}

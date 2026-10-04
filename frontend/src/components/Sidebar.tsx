@@ -44,7 +44,10 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
               aria-label="Open code editor"
               className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#7fc8ff] hover:text-[#b8e7ff] hover:border-[#7fc8ff]/60 transition-colors"
             >
-              <svg className="w-5 h-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z" /><path d="M15 3v5h5M8 13h8M8 17h6" /></svg>
+              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 20h14" />
+                <path d="M12 16V4M8 8l4-4 4 4" />
+              </svg>
             </button>
             <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#7fc8ff] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">
               EXPORT
@@ -58,7 +61,10 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
               aria-label="Import FORTRAN deck"
               className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#f5d996] hover:text-[#ffe7b1] hover:border-[#f5d996]/60 transition-colors"
             >
-              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h10l6 6v10H4z" /><path d="M14 4v6h6M12 13v6M9 16l3 3 3-3" /></svg>
+              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 20h14" />
+                <path d="M12 4v12M8 12l4 4 4-4" />
+              </svg>
             </button>
             <span className="pointer-events-none absolute left-14 ml-2 rounded-[2px] border border-[#3a444d] bg-[#101316] px-2.5 py-1 text-[10px] font-mono font-bold text-[#f5d996] shadow-xl opacity-0 transition-opacity group-hover:opacity-100 z-50">
               IMPORT
@@ -89,7 +95,10 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
               aria-label="Open levels menu"
               className="w-11 h-11 bg-gradient-to-b from-[#3d4752] to-[#262c33] border border-[#52606e] rounded-[3px] shadow-[0_4px_0_#14171a,0_5px_8px_rgba(0,0,0,0.6)] active:translate-y-[3px] active:shadow-[0_1px_0_#14171a] flex items-center justify-center text-[#f5d996] hover:text-[#ffe7b1] hover:border-[#f5d996]/60 transition-colors"
             >
-              <span className="font-mono text-[10px] font-black tracking-tight">LVL</span>
+              <svg className="h-5 w-5 fill-none stroke-current stroke-2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 21V4" />
+                <path d="M7 5h11l-3 4 3 4H7" />
+              </svg>
             </button>
             {!levelsOpen && (
               <span className="pointer-events-none absolute left-14 ml-2 px-2.5 py-1 bg-[#101316] border border-[#3a444d] shadow-xl text-[#f5d996] text-[10px] font-mono font-bold whitespace-nowrap rounded-[2px] opacity-0 group-hover:opacity-100 transition-opacity z-50">
@@ -130,17 +139,6 @@ export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutori
                           ))}
                         </div>
                       </section>
-                    ))}
-                    {LEVELS.filter((level) => level.isImpossible).map((level) => (
-                      <button
-                        key={level.id}
-                        type="button"
-                        onClick={() => selectLevel(`LEVEL ${level.id}: ${level.title}`, () => onSelectLevel(level.id))}
-                        className={`flex w-full items-center gap-2 border border-purple-500/60 px-2 py-2 text-left text-[clamp(9px,1.1vw,11px)] font-mono font-bold sm:px-3 ${selectedLevel === `LEVEL ${level.id}: ${level.title}` ? "bg-purple-950/70 text-purple-200" : "text-[#c5cfd6] hover:bg-purple-950/40"}`}
-                      >
-                        <span className="min-w-0 flex-1">{level.id} - {level.title}</span>
-                        <span className="ml-auto shrink-0 text-purple-400">?</span>
-                      </button>
                     ))}
                   </div>
                 </div>
