@@ -397,7 +397,7 @@ export default function Home() {
     ]);
 
     try {
-      const res = await fetch("http://localhost:8000/api/run", {
+      const res = await fetch("/api/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cards: cardsPayload, stdin: "" })
