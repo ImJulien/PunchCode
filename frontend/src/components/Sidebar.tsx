@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LEVELS, LevelId } from "../lib/levels";
 
 interface SidebarProps {
@@ -11,12 +11,20 @@ interface SidebarProps {
   ambienceVolume: number;
   onAmbienceVolumeChange: (volume: number) => void;
   interactionDisabled: boolean;
+  openLevelsRequest: number;
 }
 
-export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutorial, onSelectLevel, ambienceVolume, onAmbienceVolumeChange, interactionDisabled }: SidebarProps) {
+export default function Sidebar({ onScrapDeck, onEnterCodeEditor, onSelectTutorial, onSelectLevel, ambienceVolume, onAmbienceVolumeChange, interactionDisabled, openLevelsRequest }: SidebarProps) {
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState("TUTORIAL");
+
+  useEffect(() => {
+    if (openLevelsRequest > 0) {
+      const timer = window.setTimeout(() => setLevelsOpen(true), 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [openLevelsRequest]);
 
   const selectLevel = (level: string, action?: () => void) => {
     setSelectedLevel(level);

@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "IBM 029 Keypunch Workstation",
-  description: "Electromechanical 80-Column Card Punch Workstation",
+  title: "PunchCode",
+  description: "A retro IBM 029 punch-card programming challenge",
+  icons: {
+    icon: "/Logo.ico",
+  },
 };
 
 export default function RootLayout({

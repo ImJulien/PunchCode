@@ -98,7 +98,7 @@ interface FlippyTutorialProps {
   activeLevel: LevelId | null;
   challengeCards: string[];
   challengeTitle: string;
-  challengePrompt: string | null;
+  onLevelComplete: () => void;
 }
 
 type TutorialMode = "tour" | "cards" | "scrap" | "compile" | "output" | "done";
@@ -116,22 +116,23 @@ export default function FlippyTutorial({
   activeLevel,
   challengeCards,
   challengeTitle,
-  challengePrompt,
+  onLevelComplete,
 }: FlippyTutorialProps) {
   const [mode, setMode] = useState<TutorialMode>(activeLevel ? "cards" : "tour");
   const [tourStep, setTourStep] = useState(0);
   const [frame, setFrame] = useState(0);
   const [spotlight, setSpotlight] = useState<DOMRect | null>(null);
+  const [successVisible, setSuccessVisible] = useState(false);
   const wrongCardNeedsScrap = mode === "cards" && lastReleaseCorrect === false && scrapRevision < releaseRevision;
   const cardInstructions = activeLevel
     ? challengeCards.map((card, index) => {
         const statement = card.slice(6).trimEnd();
         const label = card.slice(0, 5).trim();
         return {
-          title: challengeTitle,
+          title: `${challengeTitle} · Card ${index + 1}`,
           message: label
-            ? `${challengePrompt} Card ${index + 1}: type ${label}, press TAB, then type ${statement}.`
-            : `${challengePrompt} Card ${index + 1}: press TAB, then type ${statement}.`,
+            ? `Type ${label}, press TAB, then type ${statement}.`
+            : `Press TAB, then type ${statement}.`,
           hint: "Press ENTER to release the card.",
         };
       })
@@ -141,6 +142,29 @@ export default function FlippyTutorial({
   const displayMode: TutorialMode =
     effectiveMode === "cards" && tutorialCardIndex >= cardInstructions.length ? "compile" :
     effectiveMode === "compile" && hasCompiled ? "output" : effectiveMode;
+
+  useEffect(() => {
+    if (!completed || !activeLevel || successVisible) return;
+    const animationTimer = window.setTimeout(() => setSuccessVisible(true), 0);
+    const timer = window.setTimeout(onLevelComplete, 1900);
+    return () => {
+      window.clearTimeout(animationTimer);
+      window.clearTimeout(timer);
+    };
+  }, [activeLevel, completed, onLevelComplete, successVisible]);
+
+  useEffect(() => {
+    if (!activeLevel || displayMode !== "cards") return;
+    const blockOutsideCurrentCard = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest(".flippy-guide") || target.closest("#punch-bed")) return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    document.addEventListener("pointerdown", blockOutsideCurrentCard, true);
+    return () => document.removeEventListener("pointerdown", blockOutsideCurrentCard, true);
+  }, [activeLevel, displayMode]);
   const current = useMemo<TutorialStep>(() => {
     if (displayMode === "tour") return TOUR_STEPS[tourStep];
     if (displayMode === "cards") {
@@ -332,6 +356,15 @@ export default function FlippyTutorial({
         </div>
         {completed && <div className="mt-3 border-t border-[#4b694f] pt-2 font-mono text-[10px] font-bold tracking-wider text-[#9be2b0]">✓ BATCH ACCEPTED — HELLO WORLD OUTPUT VERIFIED</div>}
       </div>
+      {successVisible && (
+        <div className="pointer-events-auto fixed inset-0 z-10 flex items-center justify-center bg-[#07100b]/75 p-6 backdrop-blur-[2px]">
+          <div className="success-burst w-[min(420px,calc(100vw-2rem))] border-2 border-[#9be2b0] bg-[#14251a] p-6 text-center font-mono shadow-[0_0_0_1px_rgba(155,226,176,0.25),0_0_35px_rgba(80,220,120,0.35)]">
+            <div className="success-check mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#9be2b0] text-3xl font-black text-[#9be2b0]">✓</div>
+            <div className="text-xl font-black tracking-[0.16em] text-[#d9ffe3]">LEVEL COMPLETE</div>
+            <div className="mt-2 text-[11px] uppercase tracking-wider text-[#9be2b0]">{challengeTitle} accepted</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

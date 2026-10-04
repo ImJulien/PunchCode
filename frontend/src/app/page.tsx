@@ -58,6 +58,7 @@ export default function Home() {
   const [scrapRevision, setScrapRevision] = useState(0);
   const [tutorialVisible, setTutorialVisible] = useState(true);
   const [helloWorldComplete, setHelloWorldComplete] = useState(false);
+  const [openLevelsRequest, setOpenLevelsRequest] = useState(0);
   const [activeLevel, setActiveLevel] = useState<LevelId | null>(null);
   const [ambienceVolume, setAmbienceVolumeState] = useState(0.2);
   const [objectivePosition, setObjectivePosition] = useState<{ left: number; top: number } | null>(null);
@@ -204,6 +205,16 @@ export default function Home() {
       return; // Cannot feed if hopper is empty
     }
 
+    if (
+      activeLevel &&
+      (tutorialCardIndex >= getLevel(activeLevel).cards.length ||
+        lastReleaseCorrect === false ||
+        currentColsRef.current.slice(0, 72).join("").trim().length === 0)
+    ) {
+      playLockSound();
+      return;
+    }
+
     playFeedSound();
     playPaperEnterSound();
     triggerEscapementKick();
@@ -245,7 +256,7 @@ export default function Home() {
     setReadCard(finalCard);
     setCurrentCols(Array(80).fill(" "));
     setColIdx(0);
-  }, [activeLevel, tutorialCardIndex, triggerEscapementKick]);
+  }, [activeLevel, lastReleaseCorrect, tutorialCardIndex, triggerEscapementKick]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent | KeyboardEvent) => {
     if (e.key === "Alt" || e.key === "Control") {
@@ -288,8 +299,10 @@ export default function Home() {
         setColIdx(6);
       } else if (cur < 72) {
         setColIdx(72);
-      } else {
+      } else if (cur < 79) {
         setColIdx(79);
+      } else {
+        playLockSound();
       }
       return;
     }
@@ -451,7 +464,10 @@ export default function Home() {
           activeLevel={activeLevel}
           challengeCards={activeLevel ? getLevel(activeLevel).cards : TUTORIAL_DECK}
           challengeTitle={activeLevel ? getLevel(activeLevel).title : "Hello World"}
-          challengePrompt={activeLevel ? getLevel(activeLevel).prompt : null}
+          onLevelComplete={() => {
+            setTutorialVisible(false);
+            setOpenLevelsRequest((request) => request + 1);
+          }}
           onDismiss={() => setTutorialVisible(false)}
           onScrapCard={() => {
             playPaperEnterSound();
@@ -462,6 +478,7 @@ export default function Home() {
             });
             setInspectingIdx(null);
             setScrapRevision(releaseRevision);
+            setLastReleaseCorrect(null);
           }}
         />
       )}
@@ -474,6 +491,7 @@ export default function Home() {
           setAmbienceVolume(volume);
         }}
         interactionDisabled={tutorialVisible}
+        openLevelsRequest={openLevelsRequest}
         onSelectTutorial={() => {
           setActiveLevel(null);
           setTutorialCardIndex(0);
@@ -490,8 +508,14 @@ export default function Home() {
           setTutorialVisible(true);
           setStacker([]);
           setReadCard(null);
+          setInspectingIdx(null);
           setCurrentCols(Array(80).fill(" "));
           setColIdx(0);
+          setPrinterOutput([
+            "IBM SYSTEM/360 OPERATING SYSTEM - READY FOR BATCH JOB",
+            "LOAD CARD DECK INTO HOPPER AND PRESS [FEED DECK TO RUNNER]"
+          ]);
+          setHasCompiled(false);
         }}
       />
 
