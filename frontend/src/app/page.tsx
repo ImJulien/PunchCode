@@ -643,7 +643,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-dvh overflow-hidden bg-[#141618] text-[#c5cfd6] flex">
+    <div className="min-h-dvh overflow-x-hidden overflow-y-auto bg-[#141618] text-[#c5cfd6] flex">
       {tutorialVisible && (
         <FlippyTutorial
           key={`${activeLevel ?? "tutorial"}-${guideSession}`}
